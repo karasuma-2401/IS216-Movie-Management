@@ -1,4 +1,3 @@
-import React from "react";
 import { Star, Search } from "lucide-react";
 
 interface Movie {
@@ -59,7 +58,7 @@ export default function NowShowing() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {MOVIES.map((movie, index) => (
           <div key={index} className="group cursor-pointer">
-            <div className="relative aspect-[2/3] rounded-[2rem] overflow-hidden mb-4 border border-white/5 transition-all duration-500 group-hover:border-tickify-pink/50 group-hover:shadow-[0_0_30px_rgba(255,0,128,0.2)]">
+            <div className="relative aspect-2/3 rounded-4xl overflow-hidden mb-4 border border-white/5 transition-all duration-500 group-hover:border-tickify-pink/50 group-hover:shadow-[0_0_30px_rgba(255,0,128,0.2)]">
               <img 
                 src={movie.image} 
                 alt={movie.title} 
@@ -80,7 +79,7 @@ export default function NowShowing() {
               </div>
 
               {/* Hover Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-tickify-dark via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-8">
+              <div className="absolute inset-0 bg-linear-to-t from-tickify-dark via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-8">
                 <button className="w-full bg-white text-black font-bold py-4 rounded-xl transition-transform translate-y-4 group-hover:translate-y-0 duration-500">
                   Quick Book
                 </button>

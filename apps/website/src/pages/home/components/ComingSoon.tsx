@@ -1,4 +1,3 @@
-import React from "react";
 import { Bookmark, Bell } from "lucide-react";
 
 interface UpcomingMovie {

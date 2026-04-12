@@ -1,4 +1,3 @@
-import React from "react";
 import { Zap, Award, Play, Heart } from "lucide-react";
 
 const STATS = [
