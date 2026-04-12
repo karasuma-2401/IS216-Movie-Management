@@ -127,7 +127,7 @@ export default function BookingConfirmation() {
             </div>
 
 
-            <div className="bg-white rounded-3xl p-8 text-tickify-bg">
+            <div className="bg-white rounded-3xl p-8 text-tickify-dark">
               <div className="flex items-center gap-3 mb-4">
                 <Info size={20} className="text-tickify-pink" />
                 <h4 className="text-sm font-black uppercase tracking-widest">Important Information</h4>
