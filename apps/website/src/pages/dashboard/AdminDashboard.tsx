@@ -40,7 +40,6 @@ export default function AdminDashboard() {
           ))}
         </div>
 
-        {/* Placeholder for more content */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="bg-tickify-card border border-white/5 rounded-[3rem] p-10 min-h-100">
             <h3 className="text-xl font-display font-bold mb-6">

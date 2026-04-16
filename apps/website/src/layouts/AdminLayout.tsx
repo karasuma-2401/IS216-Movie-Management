@@ -1,5 +1,5 @@
 import React from "react";
-import AdminSidebar from "../components/AdminSlideBar";
+import AdminSidebar from "../components/AdminSideBar";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
