@@ -99,6 +99,9 @@ export default function AdminDashboard() {
   const [currentDate, setCurrentDate] = useState(new Date());
 
   const dropdownRef = React.useRef<HTMLDivElement>(null);
+  const refreshTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -113,31 +116,47 @@ export default function AdminDashboard() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Update clock every minute
   useEffect(() => {
     const timer = setInterval(() => setCurrentDate(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
 
+  // Handle data refresh when time range changes
   useEffect(() => {
     setIsRefreshing(true);
-    const timer = setTimeout(() => {
+    if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
+
+    refreshTimerRef.current = setTimeout(() => {
       setRevenueData(generateRevenueData(timeRange));
       setIsRefreshing(false);
     }, 800);
-    return () => clearTimeout(timer);
+
+    return () => {
+      if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
+    };
   }, [timeRange]);
 
   const handleRefresh = () => {
     setIsRefreshing(true);
-    setTimeout(() => {
+    if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
+
+    refreshTimerRef.current = setTimeout(() => {
       setRevenueData(generateRevenueData(timeRange));
       setIsRefreshing(false);
     }, 1000);
   };
 
+  useEffect(() => {
+    return () => {
+      if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
+    };
+  }, []);
+
   return (
     <AdminLayout>
       <div className="space-y-10 pb-20">
+        {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
             <h1 className="text-4xl font-display font-bold mb-2">
@@ -168,6 +187,7 @@ export default function AdminDashboard() {
           </div>
         </div>
 
+        {/* AD-301: Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[
             {
@@ -240,7 +260,9 @@ export default function AdminDashboard() {
           ))}
         </div>
 
+        {/* AD-302: Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Revenue Trend Chart */}
           <div className="lg:col-span-2 bg-tickify-card border border-white/5 rounded-[3rem] p-10 shadow-xl relative overflow-hidden">
             {isRefreshing && (
               <div className="absolute inset-0 bg-tickify-bg/40 backdrop-blur-[2px] z-20 flex items-center justify-center">
@@ -257,6 +279,7 @@ export default function AdminDashboard() {
                 </p>
               </div>
 
+              {/* Custom Beautiful Dropdown */}
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -358,6 +381,7 @@ export default function AdminDashboard() {
             </div>
           </div>
 
+          {/* Top Movies Chart */}
           <div className="bg-tickify-card border border-white/5 rounded-[3rem] p-10 shadow-xl">
             <h3 className="text-xl font-display font-bold mb-1">
               Market Share
@@ -409,6 +433,7 @@ export default function AdminDashboard() {
           </div>
         </div>
 
+        {/* Recent Activity & Popular Showtimes */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="bg-tickify-card border border-white/5 rounded-[3rem] p-10">
             <div className="flex items-center justify-between mb-8">
