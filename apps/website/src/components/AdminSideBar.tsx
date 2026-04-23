@@ -3,7 +3,7 @@ import {
   Clock,
   Clapperboard,
   Film,
-  BarChart3,
+  Popcorn,
   LogOut,
   User,
 } from "lucide-react";
@@ -23,17 +23,23 @@ export default function AdminSidebar() {
       label: "Dashboard",
       path: "/admin/dashboard",
     },
-    { icon: <Clock size={20} />, label: "Showtimes", path: "/admin/showtimes" },
+    { icon: <Clock size={20} />, 
+      label: "Showtimes",
+      path: "/admin/showtimes" 
+    },
     {
       icon: <Clapperboard size={20} />,
       label: "Movies",
       path: "/admin/movies",
     },
-    { icon: <Film size={20} />, label: "Cinemas", path: "/admin/cinemas" },
+    { icon: <Film size={20} />, 
+      label: "Cinemas", 
+      path: "/admin/cinemas" 
+    },
     {
-      icon: <BarChart3 size={20} />,
-      label: "Analytics",
-      path: "/admin/analytics",
+      icon: <Popcorn size={20} />,
+      label: "Foods & Drinks",
+      path: "/admin/foods-drinks",
     },
   ];
 
