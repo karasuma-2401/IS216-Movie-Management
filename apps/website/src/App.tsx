@@ -7,9 +7,10 @@ import Seats from "./pages/movie/Seats.tsx";
 import Snacks from "./pages/movie/Snacks.tsx";
 import Payment from "./pages/movie/Payment.tsx";
 import BookingConfirmation from "./pages/movie/BookingConfirmation.tsx";
-import AdminDashboard from "./pages/dashboard/AdminDashboard.tsx";
-import AdminProfile from "./pages/dashboard/AdminProfile.tsx";
-import AdminMovies from "./pages/dashboard/AdminMovies.tsx";
+import AdminDashboard from "./pages/admin/AdminDashboard.tsx";
+import AdminProfile from "./pages/admin/AdminProfile.tsx";
+import AdminMovies from "./pages/admin/AdminMovies.tsx";
+import AdminFoods from "./pages/admin/AdminFoods.tsx";
 
 export default function App() {
   return (
@@ -30,7 +31,7 @@ export default function App() {
         <Route path="/admin/showtimes" element={<AdminDashboard />} /> {/* Placeholder */}
         <Route path="/admin/movies" element={<AdminMovies />} /> {/* Placeholder */}
         <Route path="/admin/cinemas" element={<AdminDashboard />} /> {/* Placeholder */}
-        <Route path="/admin/analytics" element={<AdminDashboard />} /> {/* Placeholder */}
+        <Route path="/admin/foods-drinks" element={<AdminFoods />} /> {/* Placeholder */}
 
         {/* Fallback route */}
         <Route path="*" element={<MainLayout><Home /></MainLayout>} />

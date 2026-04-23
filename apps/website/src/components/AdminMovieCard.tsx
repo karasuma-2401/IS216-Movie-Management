@@ -26,7 +26,7 @@ const AdminMovieCard: React.FC<AdminMovieCardProps> = ({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       whileHover={{ y: -5 }}
-      className="bg-tickify-card border border-white/5 rounded-[2.5rem] overflow-hidden group hover:border-tickify-pink/30 transition-all duration-500 shadow-xl cursor-pointer flex flex-col h-full"
+      className="bg-tickify-card border border-white/5 rounded-lg overflow-hidden group hover:border-tickify-pink/30 transition-all duration-500 shadow-xl cursor-pointer flex flex-col h-full"
       onClick={() => onClick?.(movie)}
     >
       {/* Phần Poster Image */}

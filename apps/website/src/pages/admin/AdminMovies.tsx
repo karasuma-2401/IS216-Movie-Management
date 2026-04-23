@@ -78,16 +78,6 @@ const AdminMovies: React.FC = () => {
 
         {/* Grid Movies */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-          {/* Danh sách phim */}
-          {movies.map((movie) => (
-            <AdminMovieCard 
-              key={movie.id} 
-              movie={movie} 
-              onEdit={() => handleOpenEdit(movie)}
-              onDelete={() => setDeleteTarget(movie)}
-            />
-          ))}
-
           {/* Ô Add New Movie - Giao diện Dashed */}
           <button 
             onClick={() => handleOpenAdd()}
@@ -100,6 +90,17 @@ const AdminMovies: React.FC = () => {
               Add New Movie
             </span>
           </button>
+
+          {/* Danh sách phim */}
+          {movies.map((movie) => (
+            <AdminMovieCard 
+              key={movie.id} 
+              movie={movie} 
+              onEdit={() => handleOpenEdit(movie)}
+              onDelete={() => setDeleteTarget(movie)}
+            />
+          ))}
+          
         </div>
       </div>
 
