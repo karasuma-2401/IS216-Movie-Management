@@ -1,7 +1,7 @@
 import React from "react";
 import { Star, Clock, Edit3, Trash2, Calendar } from "lucide-react";
 import { motion } from "motion/react";
-import type { Movie } from "../types/movie";
+import type { Movie } from "../../../types/movie";
 
 interface AdminMovieCardProps {
   movie: Movie;

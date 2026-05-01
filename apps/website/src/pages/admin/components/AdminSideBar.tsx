@@ -3,17 +3,19 @@ import {
   Clock,
   Clapperboard,
   Film,
-  Popcorn,
   LogOut,
   User,
+  Popcorn,
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
-export default function AdminSidebar() {
+export default function AdminSideBar() {
   const location = useLocation();
   const navigate = useNavigate();
 
   const handleLogout = () => {
+    // Clear any admin session/token if needed
+    // For now, just redirect to home
     navigate("/");
   };
 
@@ -23,29 +25,24 @@ export default function AdminSidebar() {
       label: "Dashboard",
       path: "/admin/dashboard",
     },
-    { icon: <Clock size={20} />, 
-      label: "Showtimes",
-      path: "/admin/showtimes" 
-    },
+    { icon: <Clock size={20} />, label: "Showtimes", path: "/admin/showtimes" },
     {
       icon: <Clapperboard size={20} />,
       label: "Movies",
       path: "/admin/movies",
     },
-    { icon: <Film size={20} />, 
-      label: "Cinemas", 
-      path: "/admin/cinemas" 
-    },
+    { icon: <Film size={20} />, label: "Cinemas", path: "/admin/cinemas" },
     {
       icon: <Popcorn size={20} />,
       label: "Foods & Drinks",
-      path: "/admin/foods-drinks",
+      path: "/admin/foods",
     },
   ];
 
   return (
     <aside className="w-80 bg-tickify-card border-r border-white/5 flex flex-col h-screen sticky top-0">
       <div className="p-8">
+        {/* Logo Section */}
         <div className="flex items-center gap-3 mb-10">
           <div className="w-10 h-10 bg-tickify-pink rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(255,0,128,0.4)]">
             <Film size={20} className="text-white" />
@@ -60,6 +57,7 @@ export default function AdminSidebar() {
           </div>
         </div>
 
+        {/* Navigation */}
         <nav className="space-y-2">
           {menuItems.map((item) => {
             const isActive = location.pathname === item.path;
@@ -82,6 +80,7 @@ export default function AdminSidebar() {
       </div>
 
       <div className="mt-auto p-8 border-t border-white/5 space-y-2">
+        {/* Admin Profile Section */}
         <Link
           to="/admin/profile"
           className={`flex items-center gap-3 px-5 py-4 rounded-2xl transition-all group ${
