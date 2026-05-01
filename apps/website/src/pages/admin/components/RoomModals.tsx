@@ -48,6 +48,10 @@ export default function RoomModals({
 
   useEffect(() => {
     if (room) {
+      const initialSeatTypeConfigs = room.seatTypeConfigs?.length
+        ? room.seatTypeConfigs
+        : DEFAULT_TYPE_CONFIGS;
+
       // If room exists but has no seats array, generate default ones
       if (!room.seats || room.seats.length === 0) {
         const initialSeats: Seat[] = [];
@@ -62,12 +66,20 @@ export default function RoomModals({
             });
           }
         }
-        setFormData({ ...room, seats: initialSeats });
+        setFormData({
+          ...room,
+          seats: initialSeats,
+          seatTypeConfigs: initialSeatTypeConfigs,
+        });
       } else {
-        setFormData(room);
+        setFormData({ ...room, seatTypeConfigs: initialSeatTypeConfigs });
       }
     } else {
       generateInitialSeats(8, 10);
+      setFormData((prev) => ({
+        ...prev,
+        seatTypeConfigs: DEFAULT_TYPE_CONFIGS,
+      }));
     }
   }, [room]);
 
@@ -274,7 +286,7 @@ export default function RoomModals({
                         }))
                       }
                       placeholder="e.g. TH-GRAND-01"
-                      className="w-full bg-white/3 border border-white/10 rounded-2xl px-7 py-5 text-sm focus:outline-none focus:border-tickify-pink focus:bg-white/5 transition-all placeholder:text-gray-600"
+                      className="w-full bg-white/3 border border-white/10 rounded-2xl px-7 py-5 text-sm focus:outline-none focus:border-tickify-pink focus:bg-white/[0. transition-all placeholder:text-gray-600"
                     />
                   </div>
                   <div className="group">
@@ -325,7 +337,7 @@ export default function RoomModals({
                 exit={{ opacity: 0, x: 30 }}
                 className="space-y-10"
               >
-                <div className="flex flex-wrap items-center gap-8 justify-between p-8 bg-white/3 border border-white/10 rounded-[2.5rem]">
+                <div className="flex flex-wrap items-center gap-8 justify-between p-8 bg-white/2 border border-white/10 rounded-[2.5rem]">
                   <div className="flex gap-10">
                     <div className="space-y-3">
                       <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">

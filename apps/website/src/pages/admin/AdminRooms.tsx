@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import AdminLayout from "../../layouts/AdminLayout.tsx";
 import { Plus, Edit2, Trash2, Search, ArrowUpDown } from "lucide-react";
 import type { Room } from "../../types/cinema.ts";
 import RoomModals from "./components/RoomModals.tsx";
+import { DEFAULT_TYPE_CONFIGS } from "../../types/cinema.ts";
 
 const MOCK_ROOMS: Room[] = [
   {
@@ -13,7 +14,7 @@ const MOCK_ROOMS: Room[] = [
     rowCount: 10,
     colCount: 12,
     seats: [],
-    seatTypeConfigs: [],
+    seatTypeConfigs: DEFAULT_TYPE_CONFIGS,
     createdAt: "2024-03-20T10:00:00Z",
   },
   {
@@ -24,7 +25,7 @@ const MOCK_ROOMS: Room[] = [
     rowCount: 6,
     colCount: 8,
     seats: [],
-    seatTypeConfigs: [],
+    seatTypeConfigs: DEFAULT_TYPE_CONFIGS,
     createdAt: "2024-03-21T14:30:00Z",
   },
 ];
