@@ -1,4 +1,5 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import React from "react";
+import { HashRouter as Router, Routes, Route } from "react-router-dom";
 import MainLayout from "./layouts/MainLayout.tsx";
 import Home from "./pages/home/Home.tsx";
 import Movies from "./pages/movie/Movies.tsx";
@@ -9,6 +10,7 @@ import Payment from "./pages/movie/Payment.tsx";
 import BookingConfirmation from "./pages/movie/BookingConfirmation.tsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.tsx";
 import AdminProfile from "./pages/admin/AdminProfile.tsx";
+import AdminRooms from "./pages/admin/AdminRooms.tsx";
 import AdminMovies from "./pages/admin/AdminMovies.tsx";
 import AdminFoods from "./pages/admin/AdminFoods.tsx";
 
@@ -29,9 +31,10 @@ export default function App() {
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/profile" element={<AdminProfile />} />
         <Route path="/admin/showtimes" element={<AdminDashboard />} /> {/* Placeholder */}
-        <Route path="/admin/movies" element={<AdminMovies />} /> {/* Placeholder */}
-        <Route path="/admin/cinemas" element={<AdminDashboard />} /> {/* Placeholder */}
-        <Route path="/admin/foods-drinks" element={<AdminFoods />} /> {/* Placeholder */}
+        <Route path="/admin/movies" element={<AdminMovies />} />
+        <Route path="/admin/foods" element={<AdminFoods />} />
+        <Route path="/admin/cinemas" element={<AdminRooms />} />
+        <Route path="/admin/analytics" element={<AdminDashboard />} /> {/* Placeholder */}
 
         {/* Fallback route */}
         <Route path="*" element={<MainLayout><Home /></MainLayout>} />

@@ -103,6 +103,7 @@ export default function AdminDashboard() {
     null,
   );
 
+  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -147,6 +148,7 @@ export default function AdminDashboard() {
     }, 1000);
   };
 
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
@@ -163,8 +165,8 @@ export default function AdminDashboard() {
               Dashboard Overview
             </h1>
             <p className="text-gray-500 font-medium">
-              Welcome back, Admin. Here is what is happening in your cinema
-              universe today.
+              Welcome back, Admin. Heres whats happening in your cinema universe
+              today.
             </p>
           </div>
           <div className="flex items-center gap-4">
