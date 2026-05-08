@@ -7,37 +7,46 @@ import Seats from "./pages/movie/Seats.tsx";
 import Snacks from "./pages/movie/Snacks.tsx";
 import Payment from "./pages/movie/Payment.tsx";
 import BookingConfirmation from "./pages/movie/BookingConfirmation.tsx";
+
 import Login from "./pages/auth/Login.tsx";
 import Register from "./pages/auth/Register.tsx";
 import ForgotPassword from "./pages/auth/ForgotPassword.tsx";
+
+import AdminDashboard from "./pages/admin/AdminDashboard.tsx";
+import AdminProfile from "./pages/admin/AdminProfile.tsx";
+import AdminRooms from "./pages/admin/AdminRooms.tsx";
+import AdminMovies from "./pages/admin/AdminMovies.tsx";
+import AdminFoods from "./pages/admin/AdminFoods.tsx";
 
 export default function App() {
   return (
     <Router>
       <Routes>
-        {/* Auth — full-screen, không có header/footer */}
-        <Route index element={<Login />} />
+        {/* ================= AUTH ROUTES ================= */}
+        <Route path="/" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
 
-        {/* Các route chính sử dụng MainLayout */}
-        <Route
-          path="*"
-          element={
-            <MainLayout>
-              <Routes>
-                <Route path="/home" element={<Home />} />
-                <Route path="/movies" element={<Movies />} />
-                <Route path="/theater" element={<Theater />} />
-                <Route path="/seats" element={<Seats />} />
-                <Route path="/snacks" element={<Snacks />} />
-                <Route path="/payment" element={<Payment />} />
-                <Route path="/confirmation" element={<BookingConfirmation />} />
-                <Route path="*" element={<Home />} />
-              </Routes>
-            </MainLayout>
-          }
-        />
+        {/* ================= USER ROUTES ================= */}
+        <Route path="/home" element={<MainLayout><Home /></MainLayout>} />
+        <Route path="/movies" element={<MainLayout><Movies /></MainLayout>} />
+        <Route path="/theater" element={<MainLayout><Theater /></MainLayout>} />
+        <Route path="/seats" element={<MainLayout><Seats /></MainLayout>} />
+        <Route path="/snacks" element={<MainLayout><Snacks /></MainLayout>} />
+        <Route path="/payment" element={<MainLayout><Payment /></MainLayout>} />
+        <Route path="/confirmation" element={<MainLayout><BookingConfirmation /></MainLayout>} />
+
+        {/* ================= ADMIN ROUTES ================= */}
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        <Route path="/admin/profile" element={<AdminProfile />} />
+        <Route path="/admin/showtimes" element={<AdminDashboard />} /> {/* Placeholder */}
+        <Route path="/admin/movies" element={<AdminMovies />} />
+        <Route path="/admin/foods" element={<AdminFoods />} />
+        <Route path="/admin/cinemas" element={<AdminRooms />} />
+        <Route path="/admin/analytics" element={<AdminDashboard />} /> {/* Placeholder */}
+
+        {/* ================= FALLBACK ================= */}
+        <Route path="*" element={<MainLayout><Home /></MainLayout>} />
       </Routes>
     </Router>
   );
