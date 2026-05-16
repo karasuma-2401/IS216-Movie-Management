@@ -19,6 +19,7 @@ import AdminMovies from "./pages/admin/AdminMovies.tsx";
 import AdminFoods from "./pages/admin/AdminFoods.tsx";
 import AdminShowtimes from "./pages/admin/AdminShowtimes.tsx";
 import AdminStaff from "./pages/admin/AdminStaff.tsx";
+import StaffDashboard from "./pages/staff/StaffDashboard.tsx";
 
 export default function App() {
   return (
@@ -37,6 +38,9 @@ export default function App() {
         <Route path="/snacks" element={<MainLayout><Snacks /></MainLayout>} />
         <Route path="/payment" element={<MainLayout><Payment /></MainLayout>} />
         <Route path="/confirmation" element={<MainLayout><BookingConfirmation /></MainLayout>} />
+
+        {/* ================= STAFF ROUTES ================= */}
+        <Route path="/staff/dashboard" element={<StaffDashboard />} />
 
         {/* ================= ADMIN ROUTES ================= */}
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
