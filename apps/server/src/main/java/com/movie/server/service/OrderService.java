@@ -215,6 +215,16 @@ public class OrderService {
     }
 
     private OrderResponse toResponse(Order order) {
+        List<OrderItemResponse> items = orderItemRepository.findByOrderId(order.getId())
+                .stream()
+                .map(item -> new OrderItemResponse(
+                        item.getId(),
+                        item.getOrder().getId(),
+                        item.getFoodItem().getId(),
+                        item.getFoodItem().getName(),
+                        item.getQuantity(),
+                        item.getPrice()))
+                .toList();
         return new OrderResponse(
                 order.getId(),
                 order.getUser().getId(),
@@ -226,6 +236,7 @@ public class OrderService {
                 order.getUpdatedAt(),
                 order.getUpdatedBy(),
                 order.getDeletedAt(),
-                order.getDeletedBy());
+                order.getDeletedBy(),
+                items);
     }
 }
