@@ -163,6 +163,7 @@ public class ShowtimeService {
                 showtime.getId(),
                 showtime.getMovie().getId(),
                 showtime.getMovie().getTitle(),
+                showtime.getMovie().getPosterUrl(),
                 showtime.getRoom().getId(),
                 showtime.getRoom().getName(),
                 showtime.getStartTime(),
