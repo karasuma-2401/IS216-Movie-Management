@@ -54,6 +54,11 @@ public class MovieService {
         return toResponse(getActiveMovie(id));
     }
 
+    public List<MovieResponse> findNowShowing() {
+        return movieRepository.findNowShowingMovies(LocalDateTime.now())
+                .stream().map(this::toResponse).toList();
+    }
+
     public MovieResponse create(MovieRequest request, MultipartFile poster) {
         validate(request, poster != null && !poster.isEmpty());
         LocalDateTime now = LocalDateTime.now();
