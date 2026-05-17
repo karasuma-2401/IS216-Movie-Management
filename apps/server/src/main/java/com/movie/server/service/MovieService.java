@@ -129,6 +129,7 @@ public class MovieService {
         if (request.getPosterUrl() != null && !request.getPosterUrl().isBlank()) {
             movie.setPosterUrl(request.getPosterUrl().trim());
         }
+        movie.setTrailerUrl(request.getTrailerUrl());
     }
 
     private MovieResponse toResponse(Movie movie) {
@@ -141,6 +142,7 @@ public class MovieService {
                 movie.getRating(),
                 movie.getGenre(),
                 movie.getPosterUrl(),
+                movie.getTrailerUrl(),
                 movie.getCreatedAt(),
                 movie.getCreatedBy(),
                 movie.getUpdatedAt(),
