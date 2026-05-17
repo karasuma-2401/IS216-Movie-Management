@@ -71,6 +71,15 @@ public class OrderController {
                 new ApiResponse<>(LocalDateTime.now(), HttpStatus.OK.value(), "Order updated", orderService.update(id, request)));
     }
 
+    @PostMapping("/{id}/cancel")
+    public ResponseEntity<ApiResponse<OrderResponse>> cancelOrder(
+            @PathVariable Long id, Authentication auth) {
+        if (auth == null) throw new BadRequestException("Chưa đăng nhập");
+        return ResponseEntity.ok(new ApiResponse<>(
+                LocalDateTime.now(), HttpStatus.OK.value(), "Đơn hàng đã được hủy",
+                orderService.cancelOrder(id, auth.getName())));
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<Object>> delete(@PathVariable Long id) {
         orderService.softDelete(id);

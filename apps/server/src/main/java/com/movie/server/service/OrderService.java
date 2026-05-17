@@ -98,6 +98,21 @@ public class OrderService {
         orderRepository.save(order);
     }
 
+    public OrderResponse cancelOrder(Long orderId, String userEmail) {
+        Order order = orderRepository.findByIdAndDeletedAtIsNull(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found: " + orderId));
+        if (!order.getUser().getEmail().equals(userEmail)) {
+            throw new BadRequestException("Không có quyền hủy đơn hàng này");
+        }
+        if (order.getStatus() != OrderStatus.PENDING) {
+            throw new BadRequestException("Chỉ có thể hủy đơn hàng ở trạng thái PENDING");
+        }
+        order.setStatus(OrderStatus.CANCELLED);
+        order.setUpdatedAt(LocalDateTime.now());
+        order.setUpdatedBy(userEmail);
+        return toResponse(orderRepository.save(order));
+    }
+
     public List<OrderResponse> findMyOrders(String userEmail) {
         return orderRepository.findByUser_EmailAndDeletedAtIsNull(userEmail)
                 .stream().map(this::toResponse).toList();
