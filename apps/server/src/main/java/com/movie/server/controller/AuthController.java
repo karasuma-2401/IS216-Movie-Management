@@ -7,9 +7,13 @@ import com.movie.server.dto.request.ResetPasswordRequest;
 import com.movie.server.dto.request.VerifyOtpRequest;
 import com.movie.server.dto.response.ApiResponse;
 import com.movie.server.dto.response.AuthResponse;
+import com.movie.server.entity.User;
+import com.movie.server.exception.BadRequestException;
+import com.movie.server.repository.UserRepository;
 import com.movie.server.service.AuthService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 
@@ -18,9 +22,11 @@ import java.time.LocalDateTime;
 @CrossOrigin("*")
 public class AuthController {
     private final AuthService authService;
+    private final UserRepository userRepository;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, UserRepository userRepository) {
         this.authService = authService;
+        this.userRepository = userRepository;
     }
 
     @PostMapping("/register")
@@ -52,5 +58,18 @@ public class AuthController {
     public ResponseEntity<ApiResponse<AuthResponse>> resetPassword(@RequestBody ResetPasswordRequest request) {
         AuthResponse data = authService.resetPassword(request);
         return ResponseEntity.ok(new ApiResponse<>(LocalDateTime.now(), HttpStatus.OK.value(), data.getMessage(), data));
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<AuthResponse>> me(Authentication auth) {
+        if (auth == null) throw new BadRequestException("Chưa đăng nhập");
+        User user = userRepository.findByEmail(auth.getName())
+                .orElseThrow(() -> new com.movie.server.exception.ResourceNotFoundException("User not found"));
+        AuthResponse data = AuthResponse.builder()
+                .email(user.getEmail())
+                .fullName(user.getName())
+                .role(user.getRole().name())
+                .build();
+        return ResponseEntity.ok(new ApiResponse<>(LocalDateTime.now(), HttpStatus.OK.value(), "User info fetched", data));
     }
 }
