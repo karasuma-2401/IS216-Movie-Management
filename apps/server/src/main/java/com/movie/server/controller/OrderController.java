@@ -4,6 +4,9 @@ import com.movie.server.dto.request.OrderRequest;
 import com.movie.server.dto.response.ApiResponse;
 import com.movie.server.dto.response.OrderResponse;
 import com.movie.server.service.OrderService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.springframework.http.HttpStatus;
@@ -19,6 +22,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/orders")
+@Tag(name = "Orders", description = "F&B order management")
+@SecurityRequirement(name = "bearerAuth")
 public class OrderController {
     private final OrderService orderService;
 
@@ -27,30 +32,35 @@ public class OrderController {
     }
 
     @GetMapping
+    @Operation(summary = "List all orders (ADMIN / STAFF)")
     public ResponseEntity<ApiResponse<List<OrderResponse>>> findAll() {
         return ResponseEntity.ok(
                 new ApiResponse<>(LocalDateTime.now(), HttpStatus.OK.value(), "Orders fetched", orderService.findAll()));
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Get order by ID")
     public ResponseEntity<ApiResponse<OrderResponse>> findById(@PathVariable Long id) {
         return ResponseEntity.ok(
                 new ApiResponse<>(LocalDateTime.now(), HttpStatus.OK.value(), "Order fetched", orderService.findById(id)));
     }
 
     @PostMapping
+    @Operation(summary = "Create an order (raw — prefer POST /api/orders/place for atomic order+items)")
     public ResponseEntity<ApiResponse<OrderResponse>> create(@RequestBody OrderRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 new ApiResponse<>(LocalDateTime.now(), HttpStatus.CREATED.value(), "Order created", orderService.create(request)));
     }
 
     @PutMapping("/{id}")
+    @Operation(summary = "Update an order")
     public ResponseEntity<ApiResponse<OrderResponse>> update(@PathVariable Long id, @RequestBody OrderRequest request) {
         return ResponseEntity.ok(
                 new ApiResponse<>(LocalDateTime.now(), HttpStatus.OK.value(), "Order updated", orderService.update(id, request)));
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Soft-delete an order")
     public ResponseEntity<ApiResponse<Object>> delete(@PathVariable Long id) {
         orderService.softDelete(id);
         return ResponseEntity.ok(new ApiResponse<>(LocalDateTime.now(), HttpStatus.OK.value(), "Order deleted", null));
