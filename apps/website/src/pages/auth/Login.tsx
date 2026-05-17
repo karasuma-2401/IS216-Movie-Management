@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { Mail, Lock, ArrowRight, Eye, EyeOff, Film, Sparkles, Loader2 } from "lucide-react";
-import { authService } from "../../services/auth.service";
+import { mockLogin, saveUserSession } from "../../utils/mockAuth";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -22,17 +22,22 @@ export default function Login() {
     },
   });
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: { email: string; password: string }) => {
     setIsLoading(true);
     setError(null);
-    try {
-      await authService.login(data.email, data.password);
-      navigate("/home");
-    } catch (err: any) {
-      setError(typeof err === "string" ? err : "Sai Gmail hoặc mật khẩu");
-    } finally {
-      setIsLoading(false);
+
+    // Giả lập độ trễ mạng
+    await new Promise((res) => setTimeout(res, 600));
+
+    const user = mockLogin(data.email, data.password);
+    if (user) {
+      saveUserSession(user);
+      navigate(user.redirectPath);
+    } else {
+      setError("Email hoặc mật khẩu không đúng. Vui lòng thử lại.");
     }
+
+    setIsLoading(false);
   };
 
   return (
@@ -241,18 +246,7 @@ export default function Login() {
               </motion.button>
             </motion.form>
 
-            {/* Divider */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.6 }}
-              className="mt-8"
-            >
-              <div className="relative flex items-center justify-center my-6">
-                <div className="w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-              </div>
-
-              <p className="text-center text-sm text-gray-500">
+              <p className="text-center text-sm text-gray-500 mt-6">
                 Chưa có tài khoản?{" "}
                 <Link
                   to="/register"
@@ -261,17 +255,17 @@ export default function Login() {
                   Đăng ký ngay
                 </Link>
               </p>
-            </motion.div>
 
             {/* Footer */}
             <motion.p
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.8 }}
-              className="text-center text-[11px] text-gray-600 mt-10 tracking-wider"
+              className="text-center text-[11px] text-gray-600 mt-8 tracking-wider"
             >
               © 2026 Tickify — Hệ thống đặt vé phim trực tuyến
             </motion.p>
+
           </motion.div>
         </div>
 
