@@ -20,7 +20,7 @@ interface CheckoutPanelProps {
   typeConfigs: SeatTypeConfig[];
   totalPrice: number;
   onBack: () => void;
-  onComplete: (paymentMethod: string, amountReceived?: number) => void;
+  onComplete: (paymentMethod: string, amountReceived?: number) => void; 
 }
 
 const PAYMENT_METHODS = [

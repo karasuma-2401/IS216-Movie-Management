@@ -91,11 +91,6 @@ export default function POS() {
       .map((seat: Seat) => seat.id);
   }, []);
 
-  const handleCompletePayment = () => {
-    setSelectedSeatIds([]);
-    setIsPricingOpen(false);
-  };
-
   const resetPOS = () => {
     setSelectedSeatIds([]);
     setSelectedShowtime(null);
@@ -253,20 +248,10 @@ export default function POS() {
                   typeConfigs={MOCK_ROOM_DATA.typeConfigs}
                   totalPrice={totalPrice}
                   onBack={() => setSelectedSeatIds([])}
-                  onComplete={handleCompletePayment}
+                  onComplete={() => {
+                    setIsPricingOpen(true);
+                  }}
                 />
-
-                <button
-                  disabled={selectedSeats.length === 0}
-                  onClick={() => setIsPricingOpen(true)}
-                  className={`w-full mt-4 py-5 rounded-[1.5rem] font-black text-xs uppercase tracking-[0.25em] transition-all ${
-                    selectedSeats.length > 0
-                      ? "bg-tickify-cyan text-tickify-dark shadow-[0_20px_40px_rgba(0,255,242,0.2)] hover:scale-[1.01] active:scale-95"
-                      : "bg-white/5 text-gray-600 cursor-not-allowed"
-                  }`}
-                >
-                  Continue To Checkout
-                </button>
               </div>
             </motion.div>
           )}
