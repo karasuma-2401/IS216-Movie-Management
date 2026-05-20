@@ -21,7 +21,9 @@ import AdminShowtimes from "./pages/admin/AdminShowtimes.tsx";
 import AdminStaff from "./pages/admin/AdminStaff.tsx";
 
 import StaffDashboard from "./pages/staff/StaffDashboard.tsx";
-import POS from "./pages/staff/POS.tsx";
+import StaffPOS from "./pages/staff/POS.tsx";
+import FoodPOS from "./pages/staff/FoodPOS.tsx";
+import StaffHistory from "./pages/staff/StaffHistory.tsx";
 
 export default function App() {
   return (
@@ -42,8 +44,11 @@ export default function App() {
         <Route path="/confirmation" element={<MainLayout><BookingConfirmation /></MainLayout>} />
 
         {/* ================= STAFF ROUTES ================= */}
+        <Route path="/staff" element={<StaffDashboard />} />
         <Route path="/staff/dashboard" element={<StaffDashboard />} />
-        <Route path="/staff/pos" element={<POS />} />
+        <Route path="/staff/pos" element={<StaffPOS />} />
+        <Route path="/staff/food" element={<FoodPOS />} />
+        <Route path="/staff/history" element={<StaffHistory />} />
 
         {/* ================= ADMIN ROUTES ================= */}
         <Route path="/admin/dashboard" element={<AdminDashboard />} />

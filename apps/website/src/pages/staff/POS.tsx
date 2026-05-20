@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from "motion/react";
 import { Clock3, User2, Film, MonitorPlay, Timer } from "lucide-react";
 
 import StaffLayout from "../../layouts/StaffLayout";
-
 import ShowtimeSelector from "./components/ShowtimeSelector";
 import POSSeatMap from "./components/POSSeatMap";
 import CheckoutPanel from "./components/CheckoutPanel";
@@ -15,18 +14,177 @@ import type { Showtime } from "../../types/showTime";
 import type { Seat, SeatTypeConfig } from "../../types/cinema";
 
 import {
-  MOCK_MOVIES,
-  MOCK_SHOWTIMES,
-  MOCK_ROOM_DATA,
-} from "./components/mock";
+  ChevronRight,
+  Ticket,
+  Armchair,
+  Wallet,
+  ArrowRight,
+  CheckCircle2,
+} from "lucide-react";
 
-export default function POS() {
-  const [currentTime, setCurrentTime] = useState(new Date());
+// Mock Data for Seats
+const DEFAULT_TYPE_CONFIGS: SeatTypeConfig[] = [
+  { type: "Regular", color: "#00D2FF", price: 120 },
+  { type: "VIP", color: "#FFB700", price: 180 },
+  { type: "Couple", color: "#7B2CBF", price: 250 },
+  { type: "Blocked", color: "#1f2937", price: 0 },
+  { type: "Aisle", color: "#000000", price: 0 },
+];
 
-  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
-  const [selectedShowtime, setSelectedShowtime] =
-    useState<Showtime | null>(null);
+const generateMockSeats = (rowCount: number, colCount: number): Seat[] => {
+  const seats: Seat[] = [];
+  const rowLabels = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
+  for (let r = 0; r < rowCount; r++) {
+    for (let c = 0; c < colCount; c++) {
+      let type: SeatType = "Regular";
+      if (r >= 6) type = "VIP";
+      if (r === rowCount - 1) type = "Couple";
+      if (c === 3 || c === 8) type = "Aisle";
+
+      seats.push({
+        id: `${rowLabels[r]}${c + 1}`,
+        row: r,
+        col: c,
+        type,
+        label: `${rowLabels[r]}${c + 1}`,
+      });
+    }
+  }
+  return seats;
+};
+
+const MOCK_ROOM_DATA = {
+  rowCount: 10,
+  colCount: 12,
+  seats: generateMockSeats(10, 12),
+  typeConfigs: DEFAULT_TYPE_CONFIGS,
+};
+
+const MOCK_MOVIES: Movie[] = [
+  {
+    id: 1,
+    title: "Godzilla x Kong: The New Empire",
+    description: "Two ancient titans, Godzilla and Kong, clash in an epic battle as humans unravel their intertwined origins and connection to Skull Island's mysteries.",
+    duration_minutes: 115,
+    rating: 8.5,
+    genre: "Action, Sci-Fi",
+    age_rating: "T13",
+    poster_url: "https://images.unsplash.com/photo-1635805737707-575885ab0820?auto=format&fit=crop&q=80&w=500",
+    release_date: "2024-03-27",
+    created_at: new Date().toISOString(),
+    created_by: 1,
+    updated_at: null,
+    updated_by: null,
+    deleted_at: null,
+    deleted_by: null
+  },
+  {
+    id: 2,
+    title: "Dune: Part Two",
+    description: "Paul Atreides unites with Chani and the Fremen while on a warpath of revenge against the conspirators who destroyed his family.",
+    duration_minutes: 166,
+    rating: 9.0,
+    genre: "Action, Adventure, Sci-Fi",
+    age_rating: "T13",
+    poster_url: "https://images.unsplash.com/photo-1594909122845-11baa439b7bf?auto=format&fit=crop&q=80&w=500",
+    release_date: "2024-03-01",
+    created_at: new Date().toISOString(),
+    created_by: 1,
+    updated_at: null,
+    updated_by: null,
+    deleted_at: null,
+    deleted_by: null
+  },
+  {
+    id: 3,
+    title: "Kung Fu Panda 4",
+    description: "After Po is tapped to become the Spiritual Leader of the Valley of Peace, he needs to find and train a new Dragon Warrior.",
+    duration_minutes: 94,
+    rating: 7.8,
+    genre: "Animation, Comedy, Family",
+    age_rating: "K",
+    poster_url: "https://images.unsplash.com/photo-1626814026160-2237a95fc5a0?auto=format&fit=crop&q=80&w=500",
+    release_date: "2024-03-08",
+    created_at: new Date().toISOString(),
+    created_by: 1,
+    updated_at: null,
+    updated_by: null,
+    deleted_at: null,
+    deleted_by: null
+  }
+];
+
+const now = new Date();
+const today = now.toISOString().split("T")[0];
+
+const MOCK_SHOWTIMES: Showtime[] = [
+  {
+    id: "st-1",
+    movieId: 1,
+    roomId: "R1",
+    startTime: `${today}T10:00:00`,
+    endTime: `${today}T12:00:00`,
+    format: "3D",
+    language: "Sub",
+    price: 150,
+  },
+  {
+    id: "st-2",
+    movieId: 1,
+    roomId: "R2",
+    startTime: `${today}T14:30:00`,
+    endTime: `${today}T16:30:00`,
+    format: "2D",
+    language: "Dub",
+    price: 120,
+  },
+  {
+    id: "st-3",
+    movieId: 2,
+    roomId: "R1",
+    startTime: `${today}T13:00:00`,
+    endTime: `${today}T15:45:00`,
+    format: "IMAX",
+    language: "Sub",
+    price: 250,
+  },
+  {
+    id: "st-4",
+    movieId: 2,
+    roomId: "R3",
+    startTime: `${today}T19:00:00`,
+    endTime: `${today}T21:45:00`,
+    format: "IMAX",
+    language: "Sub",
+    price: 250,
+  },
+  {
+    id: "st-5",
+    movieId: 3,
+    roomId: "R4",
+    startTime: `${today}T11:15:00`,
+    endTime: `${today}T12:50:00`,
+    format: "2D",
+    language: "Dub",
+    price: 100,
+  },
+];
+
+const BookingStep = {
+  SHOWTIME: "showtime",
+  SEATS: "seats",
+  PAYMENT: "payment",
+  TICKET: "ticket",
+} as const;
+
+type BookingStep = (typeof BookingStep)[keyof typeof BookingStep];
+
+export default function StaffPOS() {
+  const [step, setStep] = useState<BookingStep>(BookingStep.SHOWTIME);
+  const [selectedShowtime, setSelectedShowtime] = useState<Showtime | null>(
+    null,
+  );
   const [selectedSeatIds, setSelectedSeatIds] = useState<string[]>([]);
 
   const [isPricingOpen, setIsPricingOpen] = useState(false);
