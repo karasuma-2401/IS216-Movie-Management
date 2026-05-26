@@ -107,9 +107,9 @@ const ShowtimeSelector: React.FC<ShowtimeSelectorProps> = ({
                   )}
 
                   <div className="relative z-10 flex items-center gap-3">
-                    {movie.poster_url && (
+                    {movie.posterUrl && (
                       <img
-                        src={movie.poster_url}
+                        src={movie.posterUrl}
                         alt={movie.title}
                         className="w-10 h-14 rounded-lg object-cover shadow-lg"
                       />
@@ -200,9 +200,9 @@ const ShowtimeSelector: React.FC<ShowtimeSelectorProps> = ({
         {/* Current Selected Movie Info */}
         {selectedMovie && (
           <div className="rounded-[2rem] border border-white/[0.06] bg-white/[0.03] p-5 flex flex-col lg:flex-row gap-5">
-            {selectedMovie.poster_url && (
+            {selectedMovie.posterUrl && (
               <img
-                src={selectedMovie.poster_url}
+                src={selectedMovie.posterUrl}
                 alt={selectedMovie.title}
                 className="w-full lg:w-28 h-40 lg:h-36 rounded-2xl object-cover shadow-xl"
               />
@@ -220,7 +220,7 @@ const ShowtimeSelector: React.FC<ShowtimeSelectorProps> = ({
 
                     <span>•</span>
 
-                    <span>{selectedMovie.duration_minutes} mins</span>
+                    <span>{selectedMovie.durationMinutes} mins</span>
 
                     <span>•</span>
 

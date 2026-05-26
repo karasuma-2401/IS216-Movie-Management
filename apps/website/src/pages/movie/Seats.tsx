@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, Monitor, Zap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
@@ -30,6 +30,8 @@ function getSeatColor(tierName: string, isBooked: boolean, isSelected: boolean):
 export default function Seats() {
   const navigate = useNavigate();
   const { showtimeId, setBookingId, setTotalPrice, setSeats } = useBooking();
+  const mountedRef = useRef(true);
+  useEffect(() => { return () => { mountedRef.current = false; }; }, []);
 
   const [seatsData, setSeatsData] = useState<SeatAvailability[]>([]);
   const [selected, setSelected] = useState<number[]>([]);
@@ -57,21 +59,19 @@ export default function Seats() {
 
   const handleConfirm = async () => {
     if (selected.length === 0 || !showtimeId) return;
-    let mounted = true;
     setSubmitting(true);
     try {
       const booking = await bookingService.create({ showtimeId, seatIds: selected });
-      if (!mounted) return;
+      if (!mountedRef.current) return;
       setBookingId(booking.id);
       setTotalPrice(booking.totalPrice);
       setSeats(selected);
       navigate("/snacks");
     } catch (err) {
-      if (mounted) setError(typeof err === "string" ? err : "Failed to create booking");
+      if (mountedRef.current) setError(typeof err === "string" ? err : "Failed to create booking");
     } finally {
-      if (mounted) setSubmitting(false);
+      if (mountedRef.current) setSubmitting(false);
     }
-    return () => { mounted = false; };
   };
 
   // Group seats by row for display

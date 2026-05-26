@@ -119,7 +119,7 @@ export default function Payment() {
 
           <div className="lg:col-span-1">
             <OrderSummary
-              total={0}
+              total={totalPrice ?? 0}
               isFormValid={isFormValid && !loading}
               onComplete={handlePay}
             />
