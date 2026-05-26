@@ -78,7 +78,8 @@ export default function FoodPOS() {
   // Filter food items
   const filteredItems = foods.filter((item) => {
     if (!item.isAvailable) return false;
-    const matchesCategory = selectedCategory === "All" || item.category === selectedCategory;
+    // null category items appear under "All" but not under specific category filters
+    const matchesCategory = selectedCategory === "All" || (item.category !== null && item.category === selectedCategory);
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           item.description.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;

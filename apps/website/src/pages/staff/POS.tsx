@@ -60,17 +60,7 @@ const generateMockSeats = (rowCount: number, colCount: number): Seat[] => {
   return seats;
 };
 
-const BookingStep = {
-  SHOWTIME: "showtime",
-  SEATS: "seats",
-  PAYMENT: "payment",
-  TICKET: "ticket",
-} as const;
-
-type BookingStep = (typeof BookingStep)[keyof typeof BookingStep];
-
 export default function StaffPOS() {
-  const [step, setStep] = useState<BookingStep>(BookingStep.SHOWTIME);
   const [selectedShowtime, setSelectedShowtime] = useState<Showtime | null>(null);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
   const [selectedSeatIds, setSelectedSeatIds] = useState<string[]>([]);
@@ -102,7 +92,11 @@ export default function StaffPOS() {
   // Gap 2: Fetch real seats when selectedShowtime changes
   useEffect(() => {
     if (!selectedShowtime) { setApiSeats([]); return; }
-    seatService.getAvailable(selectedShowtime.id).then(setApiSeats).catch(() => {});
+    let cancelled = false;
+    seatService.getAvailable(selectedShowtime.id)
+      .then(data => { if (!cancelled) setApiSeats(data); })
+      .catch(() => {});
+    return () => { cancelled = true; };
   }, [selectedShowtime]);
 
   // Clock updater
