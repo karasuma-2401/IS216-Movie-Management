@@ -27,6 +27,9 @@ public class FoodItem {
     @Column(name = "is_available", nullable = false)
     private Boolean isAvailable = true;
 
+    @Column(nullable = true)
+    private String category;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -64,6 +67,9 @@ public class FoodItem {
 
     public Boolean getIsAvailable() { return isAvailable; }
     public void setIsAvailable(Boolean isAvailable) { this.isAvailable = isAvailable; }
+
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

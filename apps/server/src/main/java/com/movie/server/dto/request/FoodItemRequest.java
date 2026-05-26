@@ -8,6 +8,7 @@ public class FoodItemRequest {
     private BigDecimal price;
     private String imageUrl;
     private Boolean isAvailable;
+    private String category;
 
     public FoodItemRequest() {}
 
@@ -50,4 +51,7 @@ public class FoodItemRequest {
     public void setIsAvailable(Boolean isAvailable) {
         this.isAvailable = isAvailable;
     }
+
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
 }

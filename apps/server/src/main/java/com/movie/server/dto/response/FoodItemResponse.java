@@ -10,6 +10,7 @@ public class FoodItemResponse {
     private BigDecimal price;
     private String imageUrl;
     private Boolean isAvailable;
+    private String category;
     private LocalDateTime createdAt;
     private String createdBy;
     private LocalDateTime updatedAt;
@@ -24,6 +25,7 @@ public class FoodItemResponse {
             BigDecimal price,
             String imageUrl,
             Boolean isAvailable,
+            String category,
             LocalDateTime createdAt,
             String createdBy,
             LocalDateTime updatedAt,
@@ -36,6 +38,7 @@ public class FoodItemResponse {
         this.price = price;
         this.imageUrl = imageUrl;
         this.isAvailable = isAvailable;
+        this.category = category;
         this.createdAt = createdAt;
         this.createdBy = createdBy;
         this.updatedAt = updatedAt;
@@ -50,6 +53,7 @@ public class FoodItemResponse {
     public BigDecimal getPrice() { return price; }
     public String getImageUrl() { return imageUrl; }
     public Boolean getIsAvailable() { return isAvailable; }
+    public String getCategory() { return category; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public String getCreatedBy() { return createdBy; }
     public LocalDateTime getUpdatedAt() { return updatedAt; }

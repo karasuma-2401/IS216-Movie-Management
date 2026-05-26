@@ -42,6 +42,7 @@ public class FoodItemService {
         foodItem.setPrice(request.getPrice());
         foodItem.setImageUrl(imageUrl);
         foodItem.setIsAvailable(request.getIsAvailable() == null ? Boolean.TRUE : request.getIsAvailable());
+        foodItem.setCategory(request.getCategory());
         foodItem.setCreatedAt(now);
         foodItem.setCreatedBy(UNKNOWN_ACTOR);
         foodItem.setUpdatedAt(now);
@@ -57,6 +58,7 @@ public class FoodItemService {
         foodItem.setPrice(request.getPrice());
         foodItem.setImageUrl(request.getImageUrl());
         foodItem.setIsAvailable(request.getIsAvailable() == null ? foodItem.getIsAvailable() : request.getIsAvailable());
+        foodItem.setCategory(request.getCategory());
         foodItem.setUpdatedAt(LocalDateTime.now());
         foodItem.setUpdatedBy(UNKNOWN_ACTOR);
         return toResponse(foodItemRepository.save(foodItem));
@@ -94,6 +96,7 @@ public class FoodItemService {
                 foodItem.getPrice(),
                 foodItem.getImageUrl(),
                 foodItem.getIsAvailable(),
+                foodItem.getCategory(),
                 foodItem.getCreatedAt(),
                 foodItem.getCreatedBy(),
                 foodItem.getUpdatedAt(),
