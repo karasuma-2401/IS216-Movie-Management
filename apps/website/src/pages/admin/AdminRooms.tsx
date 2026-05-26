@@ -7,6 +7,8 @@ import { DEFAULT_TYPE_CONFIGS } from "./types/adminRoom";
 import { theaterRoomService } from "../../services/theaterRoom.service";
 import type { TheaterRoomRequest } from "../../services/theaterRoom.service";
 import type { TheaterRoom } from "../../types/cinema";
+import { seatService } from "../../services/seat.service";
+import type { Seat as CinemaSeat } from "../../types/cinema";
 
 function toUIRoom(tr: TheaterRoom): Room {
   return {
@@ -50,8 +52,23 @@ export default function AdminRooms() {
     setIsModalOpen(true);
   };
 
-  const handleEditRoom = (room: Room) => {
-    setEditingRoom(room);
+  const handleEditRoom = async (room: Room) => {
+    try {
+      const numericId = Number(room.id);
+      const backendSeats: CinemaSeat[] = await seatService.getByRoom(numericId);
+      const uiSeats = backendSeats.map(s => ({
+        id: String(s.id),
+        row: s.rowLabel.charCodeAt(0) - 65,
+        col: s.seatNumber - 1,
+        type: (s.tierName.toLowerCase().includes("vip") ? "VIP"
+               : s.tierName.toLowerCase().includes("couple") ? "Couple"
+               : "Regular") as "Regular" | "VIP" | "Couple" | "Blocked" | "Aisle",
+        label: `${s.rowLabel}${s.seatNumber}`,
+      }));
+      setEditingRoom({ ...room, seats: uiSeats });
+    } catch {
+      setEditingRoom(room);
+    }
     setIsModalOpen(true);
   };
 

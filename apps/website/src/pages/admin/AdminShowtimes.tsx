@@ -12,6 +12,7 @@ import {
   DollarSign,
   Building2,
   CalendarDays,
+  Edit,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { showtimeService } from "../../services/showtime.service";
@@ -73,6 +74,7 @@ export default function AdminShowtimes() {
   const [loading, setLoading]           = useState(true);
   const [error, setError]               = useState<string | null>(null);
   const [showModal, setShowModal]       = useState(false);
+  const [editingShowtime, setEditingShowtime] = useState<ShowtimeDisplay | null>(null);
   const [cinemaDropOpen, setCinemaDropOpen] = useState(false);
 
   // Modal form state
@@ -132,6 +134,19 @@ export default function AdminShowtimes() {
     }
   };
 
+  const handleEdit = (st: ShowtimeDisplay) => {
+    setEditingShowtime(st);
+    setSelMovieId(st.movieId);
+    setSelRoomId(st.roomId);
+    const d = new Date(st.startTime);
+    const dateStr = d.toISOString().slice(0, 10);
+    const timeStr = `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+    setSelDate(dateStr);
+    setSelTime(timeStr);
+    setPrice(String(st.basePrice));
+    setShowModal(true);
+  };
+
   const handleSave = async () => {
     if (!selMovieId || !selRoomId || !selDate || !selTime) {
       setTimeError(true);
@@ -140,28 +155,34 @@ export default function AdminShowtimes() {
     setTimeError(false);
 
     const startTime = `${selDate}T${selTime}:00`;
-    // Default 2-hour duration
     const endDate = new Date(`${selDate}T${selTime}:00`);
     endDate.setHours(endDate.getHours() + 2);
     const endTime = endDate.toISOString().slice(0, 19);
+    const req = {
+      movieId: Number(selMovieId),
+      roomId: Number(selRoomId),
+      startTime,
+      endTime,
+      basePrice: price ? Number(price) : 0,
+    };
 
     try {
-      const created = await showtimeService.create({
-        movieId: Number(selMovieId),
-        roomId: Number(selRoomId),
-        startTime,
-        endTime,
-        basePrice: price ? Number(price) : 0,
-      });
-      setShowtimes(prev => [...prev, toDisplay(created, prev.length)]);
+      if (editingShowtime) {
+        const updated = await showtimeService.update(editingShowtime.id, req);
+        setShowtimes(prev => prev.map(s => s.id === editingShowtime.id ? toDisplay(updated, 0) : s));
+      } else {
+        const created = await showtimeService.create(req);
+        setShowtimes(prev => [...prev, toDisplay(created, prev.length)]);
+      }
       handleCloseModal();
     } catch (err) {
-      setError(typeof err === "string" ? err : "Failed to create showtime");
+      setError(typeof err === "string" ? err : "Failed to save showtime");
     }
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
+    setEditingShowtime(null);
     setSelMovieId(""); setSelRoomId(""); setSelDate(""); setSelTime(""); setPrice("");
     setTimeError(false); setMovieDropOpen(false);
   };
@@ -321,6 +342,12 @@ export default function AdminShowtimes() {
                       </p>
                     </div>
                     <button
+                      onClick={(e) => { e.stopPropagation(); handleEdit(st); }}
+                      className="absolute top-1.5 left-1.5 w-6 h-6 rounded-lg bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-blue-500/60 transition-all"
+                    >
+                      <Edit size={10} className="text-white" />
+                    </button>
+                    <button
                       onClick={() => handleDelete(st.id)}
                       className="absolute top-1.5 right-1.5 w-6 h-6 rounded-lg bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 hover:bg-red-500/60 transition-all"
                     >
@@ -358,7 +385,9 @@ export default function AdminShowtimes() {
                     <Clock size={16} className="text-white" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-display font-bold text-white">Create New Showtime</h2>
+                    <h2 className="text-lg font-display font-bold text-white">
+                      {editingShowtime ? "Edit Showtime" : "Create New Showtime"}
+                    </h2>
                     <p className="text-xs text-slate-500">Fill in the screening details below</p>
                   </div>
                 </div>
