@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import AdminLayout from "../../layouts/AdminLayout";
 import AdminFoodCard from "../home/components/FoodCard";
 import {
@@ -13,36 +13,7 @@ import {
 } from "lucide-react";
 import type { FoodItem, FoodCategory } from "../../types/food";
 import FoodFormPopup from "../../components/Popups/FoodFormPopup";
-
-const MOCK_FOODS: FoodItem[] = [
-  {
-    id: 1,
-    name: "Large Classic Popcorn",
-    description: "Buttery and delicious, perfect for sharing",
-    price: 85,
-    category: "Popcorn",
-    image_url: "https://www.freeiconspng.com/uploads/popcorn-png-15.png",
-    is_popular: true,
-  },
-  {
-    id: 2,
-    name: "Medium Caramel Popcorn",
-    description: "Sweet caramel coating on fresh popcorn",
-    price: 75,
-    category: "Popcorn",
-    image_url:
-      "https://www.pngarts.com/files/3/Popcorn-PNG-High-Quality-Image.png",
-  },
-  {
-    id: 3,
-    name: "Large Coca-Cola",
-    description: "Ice-cold classic cola, 32oz",
-    price: 55,
-    category: "Drinks",
-    image_url: "https://pngimg.com/d/cocacola_PNG19.png",
-    is_popular: true,
-  },
-];
+import { foodService } from "../../services/food.service";
 
 // Fix lỗi 'any' bằng cách định nghĩa type LucideIcon
 const CATEGORIES: { label: FoodCategory; icon: LucideIcon }[] = [
@@ -56,10 +27,18 @@ const CATEGORIES: { label: FoodCategory; icon: LucideIcon }[] = [
 
 const AdminFoods: React.FC = () => {
   const [activeTab, setActiveTab] = useState<FoodCategory>("All Items");
-  // Chuyển sang sử dụng State để có thể thêm/xóa/sửa
-  const [foods, setFoods] = useState<FoodItem[]>(MOCK_FOODS);
+  const [foods, setFoods] = useState<FoodItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<FoodItem | null>(null);
+
+  useEffect(() => {
+    foodService.getAll()
+      .then(setFoods)
+      .catch(err => setError(typeof err === "string" ? err : "Failed to load food items"))
+      .finally(() => setLoading(false));
+  }, []);
 
   const filteredFoods =
     activeTab === "All Items"
@@ -77,37 +56,55 @@ const AdminFoods: React.FC = () => {
   };
 
   // --- LOGIC XÓA ---
-  const handleDelete = (id: number) => {
+  const handleDelete = async (id: number) => {
     if (window.confirm("Are you sure you want to delete this item?")) {
-      setFoods((prev) => prev.filter((item) => item.id !== id));
+      try {
+        await foodService.delete(id);
+        setFoods((prev) => prev.filter((item) => item.id !== id));
+      } catch (err) {
+        setError(typeof err === "string" ? err : "Failed to delete food item");
+      }
     }
   };
 
   // --- LOGIC LƯU (THÊM & SỬA) ---
-  const handleSave = (data: Partial<FoodItem>) => {
+  // FoodFormPopup passes data with legacy field names (image_url, is_popular); map them
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleSave = async (data: any) => {
     // Validation cơ bản
     if (!data.name || !data.price || !data.category) {
       alert("Please fill in all required fields (Name, Price, Category)");
       return;
     }
 
-    if (editTarget) {
-      // Logic Cập nhật (Update)
-      setFoods((prev) =>
-        prev.map((item) =>
-          item.id === editTarget.id ? ({ ...item, ...data } as FoodItem) : item,
-        ),
-      );
-    } else {
-      // Logic Thêm mới (Create)
-      const maxId = foods.length > 0 ? Math.max(...foods.map((f) => f.id)) : 0;
-      const newItem: FoodItem = {
-        ...data,
-        id: maxId + 1,
-        image_url: data.image_url || "https://via.placeholder.com/400",
-      } as FoodItem;
-
-      setFoods((prev) => [...prev, newItem]);
+    try {
+      if (editTarget) {
+        // Update via JSON body
+        const updated = await foodService.update(editTarget.id, {
+          name: data.name,
+          description: data.description ?? "",
+          price: Number(data.price),
+          category: data.category ?? null,
+          imageUrl: data.imageUrl ?? data.image_url ?? editTarget.imageUrl,
+          isAvailable: data.isAvailable ?? (data.is_popular !== undefined ? data.is_popular : editTarget.isAvailable),
+        });
+        setFoods((prev) =>
+          prev.map((item) => item.id === editTarget.id ? updated : item),
+        );
+      } else {
+        // Create via FormData
+        const fd = new FormData();
+        fd.append("name", data.name);
+        fd.append("description", data.description ?? "");
+        fd.append("price", String(data.price));
+        if (data.category) fd.append("category", data.category);
+        const imageUrl = data.imageUrl ?? data.image_url;
+        if (imageUrl) fd.append("imageUrl", imageUrl);
+        const created = await foodService.create(fd);
+        setFoods((prev) => [...prev, created]);
+      }
+    } catch (err) {
+      setError(typeof err === "string" ? err : "Failed to save food item");
     }
 
     setIsPopupOpen(false);
@@ -150,6 +147,12 @@ const AdminFoods: React.FC = () => {
           })}
         </div>
 
+        {error && (
+          <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-2xl text-red-400 text-sm font-medium">
+            {error}
+          </div>
+        )}
+
         {/* Foods Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
           {/* Fix cảnh báo Tailwind: aspect-[4/5] -> aspect-4/5, rounded-[2rem] -> rounded-4xl */}
@@ -168,15 +171,25 @@ const AdminFoods: React.FC = () => {
             </span>
           </button>
 
-          {/* List Items */}
-          {filteredFoods.map((item) => (
-            <AdminFoodCard
-              key={item.id}
-              item={item}
-              onEdit={() => handleOpenEdit(item)}
-              onDelete={() => handleDelete(item.id)}
-            />
+          {/* Loading skeletons */}
+          {loading && Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="aspect-4/5 bg-white/5 rounded-4xl animate-pulse" />
           ))}
+
+          {/* List Items — coerce to legacy field names that FoodCard reads */}
+          {!loading && filteredFoods.map((item) => {
+            // FoodCard (outside admin/) reads image_url and is_popular; bridge the real type
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const coerced = { ...item, image_url: item.imageUrl, is_popular: item.isAvailable } as any;
+            return (
+              <AdminFoodCard
+                key={item.id}
+                item={coerced}
+                onEdit={() => handleOpenEdit(item)}
+                onDelete={() => handleDelete(item.id)}
+              />
+            );
+          })}
 
           <FoodFormPopup
             isOpen={isPopupOpen}

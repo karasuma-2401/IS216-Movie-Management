@@ -32,7 +32,7 @@ const AdminMovieCard: React.FC<AdminMovieCardProps> = ({
       {/* Phần Poster Image */}
       <div className="relative aspect-2/3 overflow-hidden">
         <img
-          src={movie.poster_url}
+          src={movie.posterUrl}
           alt={movie.title}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
         />
@@ -79,11 +79,11 @@ const AdminMovieCard: React.FC<AdminMovieCardProps> = ({
             <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 font-bold mb-6">
               <div className="flex items-center gap-1.5">
                 <Clock size={14} className="text-tickify-cyan" />
-                {movie.duration_minutes} min
+                {movie.durationMinutes} min
               </div>
               <div className="flex items-center gap-1.5">
                 <Calendar size={14} className="text-tickify-purple" />
-                {formatDate(movie.release_date)}
+                {formatDate(movie.releaseDate)}
               </div>
             </div>
         </div>
@@ -92,10 +92,10 @@ const AdminMovieCard: React.FC<AdminMovieCardProps> = ({
         <div className="pt-6 border-t border-white/5 mt-auto">
             <div className="flex items-center justify-between text-[10px] text-gray-600 font-bold uppercase tracking-widest">
                 <span>ID: #{movie.id}</span>
-                {movie.updated_at ? (
-                    <span>Updated: {formatDate(movie.updated_at)}</span>
+                {movie.updatedAt ? (
+                    <span>Updated: {formatDate(movie.updatedAt)}</span>
                 ) : (
-                    <span>Created: {formatDate(movie.created_at)}</span>
+                    <span>Created: {formatDate(movie.createdAt)}</span>
                 )}
             </div>
         </div>

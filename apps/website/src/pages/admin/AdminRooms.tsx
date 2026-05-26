@@ -1,40 +1,49 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AdminLayout from "../../layouts/AdminLayout.tsx";
 import { Plus, Edit2, Trash2, Search, ArrowUpDown } from "lucide-react";
-import type { Room } from "../../types/cinema.ts";
+import type { Room } from "./types/adminRoom";
 import RoomModals from "./components/RoomModals.tsx";
-import { DEFAULT_TYPE_CONFIGS } from "../../types/cinema.ts";
+import { DEFAULT_TYPE_CONFIGS } from "./types/adminRoom";
+import { theaterRoomService } from "../../services/theaterRoom.service";
+import type { TheaterRoomRequest } from "../../services/theaterRoom.service";
+import type { TheaterRoom } from "../../types/cinema";
 
-const MOCK_ROOMS: Room[] = [
-  {
-    id: "1",
-    roomId: "ROOM-001",
-    name: "Grand Theater 1",
-    description: "Standard large screen with premium sound system.",
-    rowCount: 10,
-    colCount: 12,
+function toUIRoom(tr: TheaterRoom): Room {
+  return {
+    id: String(tr.id),
+    roomId: `ROOM-${String(tr.id).padStart(3, "0")}`,
+    name: tr.name,
+    description: "",
+    rowCount: tr.totalRows,
+    colCount: tr.seatsPerRow,
     seats: [],
     seatTypeConfigs: DEFAULT_TYPE_CONFIGS,
-    createdAt: "2024-03-20T10:00:00Z",
-  },
-  {
-    id: "2",
-    roomId: "ROOM-002",
-    name: "VIP Lounge 1",
-    description: "Exclusive VIP experience with recliners.",
-    rowCount: 6,
-    colCount: 8,
-    seats: [],
-    seatTypeConfigs: DEFAULT_TYPE_CONFIGS,
-    createdAt: "2024-03-21T14:30:00Z",
-  },
-];
+    createdAt: new Date().toISOString(),
+  };
+}
+
+function toAPIRequest(room: Room): TheaterRoomRequest {
+  return {
+    name: room.name,
+    totalRows: room.rowCount,
+    seatsPerRow: room.colCount,
+  };
+}
 
 export default function AdminRooms() {
-  const [rooms, setRooms] = useState<Room[]>(MOCK_ROOMS);
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRoom, setEditingRoom] = useState<Room | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+
+  useEffect(() => {
+    theaterRoomService.getAll()
+      .then(rooms => setRooms(rooms.map(toUIRoom)))
+      .catch(err => setError(typeof err === "string" ? err : "Failed to load rooms"))
+      .finally(() => setLoading(false));
+  }, []);
 
   const handleAddRoom = () => {
     setEditingRoom(null);
@@ -46,24 +55,33 @@ export default function AdminRooms() {
     setIsModalOpen(true);
   };
 
-  const handleDeleteRoom = (id: string) => {
+  const handleDeleteRoom = async (id: string) => {
     if (
       window.confirm(
         "Are you sure you want to delete this room? This action cannot be undone.",
       )
     ) {
-      setRooms(rooms.filter((r) => r.id !== id));
+      try {
+        await theaterRoomService.delete(Number(id));
+        setRooms(rooms.filter((r) => r.id !== id));
+      } catch (err) {
+        setError(typeof err === "string" ? err : "Failed to delete room");
+      }
     }
   };
 
-  const handleSaveRoom = (room: Room) => {
-    if (editingRoom) {
-      setRooms(rooms.map((r) => (r.id === room.id ? room : r)));
-    } else {
-      setRooms([
-        ...rooms,
-        { ...room, id: Math.random().toString(36).substr(2, 9) },
-      ]);
+  const handleSaveRoom = async (room: Room) => {
+    try {
+      const req = toAPIRequest(room);
+      if (editingRoom) {
+        const updated = await theaterRoomService.update(Number(editingRoom.id), req);
+        setRooms(rooms.map((r) => r.id === editingRoom.id ? toUIRoom(updated) : r));
+      } else {
+        const created = await theaterRoomService.create(req);
+        setRooms([...rooms, toUIRoom(created)]);
+      }
+    } catch (err) {
+      setError(typeof err === "string" ? err : "Failed to save room");
     }
     setIsModalOpen(false);
   };
@@ -88,12 +106,19 @@ export default function AdminRooms() {
           </div>
           <button
             onClick={handleAddRoom}
-            className="flex items-center gap-2 bg-linear-to-r from-tickify-pink to-tickify-purple px-6 py-3 rounded-2xl font-bold text-sm uppercase tracking-widest shadow-[0_0_20px_rgba(255,0,128,0.3)] hover:shadow-[0_0_30px_rgba(255,0,128,0.5)] transition-all"
+            className="flex items-center gap-2 bg-linear-to-r from-tickify-pink to-tickify-purple px-6 py-3 rounded-2xl font-bold text-sm uppercase tracking-widest shadow-[0_0_20px_rgba(255,0,128,0.3)] hover:shadow-[0_0_30px_rgba(255,0,128,0.5)] transition-all disabled:opacity-50"
+            disabled={loading}
           >
             <Plus size={20} />
             Add New Room
           </button>
         </div>
+
+        {error && (
+          <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-2xl text-red-400 text-sm font-medium">
+            {error}
+          </div>
+        )}
 
         <div className="bg-tickify-card border border-white/5 rounded-4xl overflow-hidden">
           <div className="p-8 border-b border-white/5 flex items-center justify-between">
@@ -127,7 +152,14 @@ export default function AdminRooms() {
                 </tr>
               </thead>
               <tbody className="text-sm font-medium">
-                {filteredRooms.map((room) => (
+                {loading && (
+                  <tr>
+                    <td colSpan={6} className="px-8 py-12 text-center text-gray-500 text-sm">
+                      Loading rooms...
+                    </td>
+                  </tr>
+                )}
+                {!loading && filteredRooms.map((room) => (
                   <tr
                     key={room.id}
                     className="border-b border-white/5 last:border-0 hover:bg-white/2 transition-colors group"

@@ -7,7 +7,7 @@ import type {
   Seat,
   SeatType,
   SeatTypeConfig,
-} from "../../../types/cinema.ts";
+} from "../types/adminRoom";
 
 interface RoomModalProps {
   room: Room | null;

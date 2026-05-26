@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AdminLayout from "../../layouts/AdminLayout";
 import {
   Plus,
@@ -14,9 +14,14 @@ import {
   CalendarDays,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
+import { showtimeService } from "../../services/showtime.service";
+import { movieService } from "../../services/movie.service";
+import { theaterRoomService } from "../../services/theaterRoom.service";
+import type { Movie } from "../../types/movie";
+import type { TheaterRoom } from "../../types/cinema";
 
-// ─────────────── Types ───────────────
-interface Showtime {
+// ─────────────── Display type for calendar UI ───────────────
+interface ShowtimeDisplay {
   id: number;
   movie: string;
   room: string;
@@ -24,17 +29,13 @@ interface Showtime {
   startHour: number; // e.g. 14 for 14:00
   durationH: number; // height in hours
   color: string;
+  // keep real IDs for API calls
+  movieId: number;
+  roomId: number;
+  startTime: string;
+  endTime: string;
+  basePrice: number;
 }
-
-// ─────────────── Mock data ───────────────
-const MOVIES = [
-  { id: 1, title: "Deadpool & Wolverine", thumb: "https://picsum.photos/seed/dp/60/90" },
-  { id: 2, title: "The Conjuring 4",      thumb: "https://picsum.photos/seed/conj/60/90" },
-  { id: 3, title: "Inside Out 2",         thumb: "https://picsum.photos/seed/io2/60/90" },
-  { id: 4, title: "Dune: Part Two",       thumb: "https://picsum.photos/seed/dune/60/90" },
-];
-
-const ROOMS = ["Screen 1", "Screen 2", "Screen 3", "IMAX 1", "4DX Hall"];
 
 const BLOCK_COLORS = [
   "from-pink-500 to-purple-600",
@@ -42,15 +43,6 @@ const BLOCK_COLORS = [
   "from-orange-500 to-pink-600",
   "from-green-500 to-teal-600",
   "from-violet-500 to-indigo-600",
-];
-
-const INITIAL_SHOWTIMES: Showtime[] = [
-  { id: 1, movie: "Deadpool & Wolverine", room: "IMAX 1",   day: 0, startHour: 10, durationH: 2, color: BLOCK_COLORS[0] },
-  { id: 2, movie: "The Conjuring 4",      room: "Screen 1", day: 1, startHour: 14, durationH: 2, color: BLOCK_COLORS[1] },
-  { id: 3, movie: "Inside Out 2",         room: "Screen 2", day: 2, startHour: 9,  durationH: 2, color: BLOCK_COLORS[2] },
-  { id: 4, movie: "Dune: Part Two",       room: "4DX Hall", day: 3, startHour: 19, durationH: 3, color: BLOCK_COLORS[3] },
-  { id: 5, movie: "Deadpool & Wolverine", room: "Screen 3", day: 4, startHour: 20, durationH: 2, color: BLOCK_COLORS[4] },
-  { id: 6, movie: "Inside Out 2",         room: "Screen 1", day: 6, startHour: 15, durationH: 2, color: BLOCK_COLORS[2] },
 ];
 
 const CINEMAS = ["All Cinemas", "Cinema City Center", "Cinema Mega Mall", "Cinema West Side"];
@@ -75,48 +67,106 @@ function getWeekDates(offset: number) {
 export default function AdminShowtimes() {
   const [weekOffset, setWeekOffset]     = useState(0);
   const [cinema, setCinema]             = useState("All Cinemas");
-  const [showtimes, setShowtimes]       = useState<Showtime[]>(INITIAL_SHOWTIMES);
+  const [showtimes, setShowtimes]       = useState<ShowtimeDisplay[]>([]);
+  const [movies, setMovies]             = useState<Movie[]>([]);
+  const [rooms, setRooms]               = useState<TheaterRoom[]>([]);
+  const [loading, setLoading]           = useState(true);
+  const [error, setError]               = useState<string | null>(null);
   const [showModal, setShowModal]       = useState(false);
   const [cinemaDropOpen, setCinemaDropOpen] = useState(false);
 
   // Modal form state
-  const [selMovie, setSelMovie]   = useState("");
-  const [selRoom, setSelRoom]     = useState("");
-  const [selDate, setSelDate]     = useState("");
-  const [selTime, setSelTime]     = useState("");
-  const [price, setPrice]         = useState("");
-  const [timeError, setTimeError] = useState(false);
+  const [selMovieId, setSelMovieId] = useState<number | "">("");
+  const [selRoomId, setSelRoomId]   = useState<number | "">("");
+  const [selDate, setSelDate]       = useState("");
+  const [selTime, setSelTime]       = useState("");
+  const [price, setPrice]           = useState("");
+  const [timeError, setTimeError]   = useState(false);
   const [movieDropOpen, setMovieDropOpen] = useState(false);
 
   const weekDates = getWeekDates(weekOffset);
 
-  const handleDelete = (id: number) => setShowtimes(prev => prev.filter(s => s.id !== id));
+  // Helper to convert a real Showtime to display format
+  const toDisplay = (s: { id: number; movieTitle: string; roomName: string; startTime: string; endTime: string; basePrice: number; movieId: number; roomId: number }, idx: number): ShowtimeDisplay => {
+    const start = new Date(s.startTime);
+    const end = new Date(s.endTime);
+    const dayOfWeek = start.getDay(); // 0=Sun
+    const day = (dayOfWeek + 6) % 7; // convert to Mon=0
+    const startHour = start.getHours();
+    const durationH = Math.max(1, Math.round((end.getTime() - start.getTime()) / 3600000));
+    return {
+      id: s.id,
+      movie: s.movieTitle,
+      room: s.roomName,
+      day,
+      startHour,
+      durationH,
+      color: BLOCK_COLORS[idx % BLOCK_COLORS.length],
+      movieId: s.movieId,
+      roomId: s.roomId,
+      startTime: s.startTime,
+      endTime: s.endTime,
+      basePrice: s.basePrice,
+    };
+  };
 
-  const handleSave = () => {
-    // Simulate conflict check for Room "Screen 1" at 14:xx
-    if (selRoom === "Screen 1" && selTime.startsWith("14")) {
+  useEffect(() => {
+    Promise.all([
+      showtimeService.getAll(),
+      movieService.getAll(),
+      theaterRoomService.getAll(),
+    ]).then(([s, m, r]) => {
+      setShowtimes(s.map((st, i) => toDisplay(st, i)));
+      setMovies(m);
+      setRooms(r);
+    }).catch(err => setError(typeof err === "string" ? err : "Failed to load"))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleDelete = async (id: number) => {
+    try {
+      await showtimeService.delete(id);
+      setShowtimes(prev => prev.filter(s => s.id !== id));
+    } catch (err) {
+      setError(typeof err === "string" ? err : "Failed to delete showtime");
+    }
+  };
+
+  const handleSave = async () => {
+    if (!selMovieId || !selRoomId || !selDate || !selTime) {
       setTimeError(true);
       return;
     }
     setTimeError(false);
-    const newSt: Showtime = {
-      id: Date.now(),
-      movie: selMovie || "Unnamed Movie",
-      room: selRoom || "Screen 1",
-      day: selDate ? (new Date(selDate).getDay() + 6) % 7 : 0,
-      startHour: selTime ? parseInt(selTime.split(":")[0]) : 10,
-      durationH: 2,
-      color: BLOCK_COLORS[Math.floor(Math.random() * BLOCK_COLORS.length)],
-    };
-    setShowtimes(prev => [...prev, newSt]);
-    handleCloseModal();
+
+    const startTime = `${selDate}T${selTime}:00`;
+    // Default 2-hour duration
+    const endDate = new Date(`${selDate}T${selTime}:00`);
+    endDate.setHours(endDate.getHours() + 2);
+    const endTime = endDate.toISOString().slice(0, 19);
+
+    try {
+      const created = await showtimeService.create({
+        movieId: Number(selMovieId),
+        roomId: Number(selRoomId),
+        startTime,
+        endTime,
+        basePrice: price ? Number(price) : 0,
+      });
+      setShowtimes(prev => [...prev, toDisplay(created, prev.length)]);
+      handleCloseModal();
+    } catch (err) {
+      setError(typeof err === "string" ? err : "Failed to create showtime");
+    }
   };
 
   const handleCloseModal = () => {
     setShowModal(false);
-    setSelMovie(""); setSelRoom(""); setSelDate(""); setSelTime(""); setPrice("");
+    setSelMovieId(""); setSelRoomId(""); setSelDate(""); setSelTime(""); setPrice("");
     setTimeError(false); setMovieDropOpen(false);
   };
+
+  const selectedMovie = movies.find(m => m.id === selMovieId);
 
   return (
     <AdminLayout>
@@ -199,6 +249,12 @@ export default function AdminShowtimes() {
             </AnimatePresence>
           </div>
         </div>
+
+        {error && (
+          <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-2xl text-red-400 text-sm font-medium">
+            {error}
+          </div>
+        )}
 
         {/* ── AD-601: Weekly Calendar Grid ── */}
         <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl">
@@ -325,8 +381,8 @@ export default function AdminShowtimes() {
                       onClick={() => setMovieDropOpen(v => !v)}
                       className="w-full flex items-center justify-between gap-3 bg-slate-950/80 border border-slate-700 rounded-xl px-4 py-3 text-sm text-left hover:border-pink-500/50 transition-all"
                     >
-                      {selMovie ? (
-                        <span className="font-bold text-white">{selMovie}</span>
+                      {selectedMovie ? (
+                        <span className="font-bold text-white">{selectedMovie.title}</span>
                       ) : (
                         <span className="text-slate-500">Choose a movie...</span>
                       )}
@@ -338,18 +394,21 @@ export default function AdminShowtimes() {
                           initial={{ opacity: 0, y: 6 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: 6 }}
-                          className="absolute top-full left-0 right-0 mt-1 bg-slate-950 border border-slate-800 rounded-xl shadow-2xl z-10 p-2"
+                          className="absolute top-full left-0 right-0 mt-1 bg-slate-950 border border-slate-800 rounded-xl shadow-2xl z-10 p-2 max-h-48 overflow-y-auto"
                         >
-                          {MOVIES.map(m => (
+                          {movies.map(m => (
                             <button
                               key={m.id}
-                              onClick={() => { setSelMovie(m.title); setMovieDropOpen(false); }}
+                              onClick={() => { setSelMovieId(m.id); setMovieDropOpen(false); }}
                               className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-all"
                             >
-                              <img src={m.thumb} alt={m.title} className="w-8 h-12 object-cover rounded-md flex-shrink-0" />
+                              <img src={m.posterUrl} alt={m.title} className="w-8 h-12 object-cover rounded-md flex-shrink-0" />
                               <span className="text-sm font-bold text-white text-left">{m.title}</span>
                             </button>
                           ))}
+                          {movies.length === 0 && (
+                            <p className="text-xs text-slate-500 text-center py-3">No movies available</p>
+                          )}
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -362,12 +421,12 @@ export default function AdminShowtimes() {
                     <Building2 size={11} className="inline mr-1" />Select Room
                   </label>
                   <select
-                    value={selRoom}
-                    onChange={e => setSelRoom(e.target.value)}
+                    value={selRoomId}
+                    onChange={e => setSelRoomId(Number(e.target.value) || "")}
                     className="w-full bg-slate-950/80 border border-slate-700 rounded-xl px-4 py-3 text-sm font-bold text-white hover:border-pink-500/50 focus:outline-none focus:border-pink-500 transition-all appearance-none cursor-pointer"
                   >
                     <option value="" disabled>Choose a room...</option>
-                    {ROOMS.map(r => <option key={r} value={r}>{r}</option>)}
+                    {rooms.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
                   </select>
                 </div>
 
@@ -398,7 +457,7 @@ export default function AdminShowtimes() {
                           : "border-slate-700 focus:border-pink-500"
                       }`}
                     />
-                    {/* AD-603: Conflict error */}
+                    {/* AD-603: Validation error */}
                     {timeError && (
                       <motion.div
                         initial={{ opacity: 0, y: -4 }}
@@ -407,7 +466,7 @@ export default function AdminShowtimes() {
                       >
                         <AlertTriangle size={13} className="text-red-400 flex-shrink-0 mt-0.5" />
                         <p className="text-[10px] font-bold text-red-400 leading-snug">
-                          Conflict: Room is already booked for this time slot
+                          Please fill in all required fields (movie, room, date, time)
                         </p>
                       </motion.div>
                     )}

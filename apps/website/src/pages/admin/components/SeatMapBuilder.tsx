@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
-import type { Seat, SeatType, SeatTypeConfig } from "../../../types/cinema.ts";
+import type { Seat, SeatType, SeatTypeConfig } from "../types/adminRoom";
 import { motion } from "motion/react";
 import { Info } from "lucide-react";
 

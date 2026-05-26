@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AdminLayout from "../../layouts/AdminLayout";
 import {
   Search,
@@ -15,56 +15,8 @@ import {
   KeyRound
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-
-// --- Mock Data ---
-interface Staff {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  shift: string;
-  status: "Active" | "Offline";
-  avatar: string;
-}
-
-const INITIAL_STAFF: Staff[] = [
-  {
-    id: "EMP-001",
-    name: "Alex Johnson",
-    email: "alex.j@tickify.com",
-    role: "Manager",
-    shift: "Morning Shift (08:00 - 16:00)",
-    status: "Active",
-    avatar: "https://i.pravatar.cc/150?u=alex",
-  },
-  {
-    id: "EMP-002",
-    name: "Sarah Williams",
-    email: "sarah.w@tickify.com",
-    role: "Ticketing",
-    shift: "Evening Shift (16:00 - 00:00)",
-    status: "Offline",
-    avatar: "https://i.pravatar.cc/150?u=sarah",
-  },
-  {
-    id: "EMP-003",
-    name: "Michael Chen",
-    email: "m.chen@tickify.com",
-    role: "Concession",
-    shift: "Morning Shift (08:00 - 16:00)",
-    status: "Active",
-    avatar: "https://i.pravatar.cc/150?u=michael",
-  },
-  {
-    id: "EMP-004",
-    name: "Emily Davis",
-    email: "emily.d@tickify.com",
-    role: "Ticketing",
-    shift: "Flexible",
-    status: "Offline",
-    avatar: "https://i.pravatar.cc/150?u=emily",
-  },
-];
+import { staffService } from "../../services/staff.service";
+import type { Staff } from "../../types/staff";
 
 const ROLES = ["Manager", "Ticketing", "Concession", "Admin"];
 const SHIFTS = [
@@ -75,7 +27,9 @@ const SHIFTS = [
 ];
 
 export default function AdminStaff() {
-  const [staffData, setStaffData] = useState<Staff[]>(INITIAL_STAFF);
+  const [staffData, setStaffData] = useState<Staff[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingStaff, setEditingStaff] = useState<Staff | null>(null);
@@ -84,11 +38,19 @@ export default function AdminStaff() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    phone: "",
     password: "",
     role: "Ticketing",
     shift: "Morning Shift (08:00 - 16:00)",
-    status: "Active" as "Active" | "Offline",
+    status: "Active" as string,
   });
+
+  useEffect(() => {
+    staffService.getAll()
+      .then(setStaffData)
+      .catch(err => setError(typeof err === "string" ? err : "Failed to load staff"))
+      .finally(() => setLoading(false));
+  }, []);
 
   const filteredStaff = staffData.filter(
     (staff) =>
@@ -102,6 +64,7 @@ export default function AdminStaff() {
       setFormData({
         name: staff.name,
         email: staff.email,
+        phone: staff.phone ?? "",
         password: "", // Don't populate password for editing
         role: staff.role,
         shift: staff.shift,
@@ -112,6 +75,7 @@ export default function AdminStaff() {
       setFormData({
         name: "",
         email: "",
+        phone: "",
         password: "",
         role: "Ticketing",
         shift: "Morning Shift (08:00 - 16:00)",
@@ -126,35 +90,37 @@ export default function AdminStaff() {
     setEditingStaff(null);
   };
 
-  const handleSave = () => {
-    if (editingStaff) {
-      // Update
-      setStaffData((prev) =>
-        prev.map((s) =>
-          s.id === editingStaff.id
-            ? { ...s, ...formData, avatar: s.avatar }
-            : s
-        )
-      );
-    } else {
-      // Create
-      const newStaff: Staff = {
-        id: `EMP-${String(staffData.length + 1).padStart(3, "0")}`,
+  const handleSave = async () => {
+    try {
+      const req = {
         name: formData.name,
         email: formData.email,
+        phone: formData.phone,
         role: formData.role,
         shift: formData.shift,
         status: formData.status,
-        avatar: `https://i.pravatar.cc/150?u=${formData.email}`,
       };
-      setStaffData([newStaff, ...staffData]);
+      if (editingStaff) {
+        const updated = await staffService.update(editingStaff.id, req);
+        setStaffData((prev) => prev.map((s) => s.id === editingStaff.id ? updated : s));
+      } else {
+        const created = await staffService.create(req);
+        setStaffData((prev) => [created, ...prev]);
+      }
+    } catch (err) {
+      setError(typeof err === "string" ? err : "Failed to save staff member");
     }
     handleCloseModal();
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: number) => {
     if (window.confirm("Are you sure you want to delete this staff member?")) {
-      setStaffData((prev) => prev.filter((s) => s.id !== id));
+      try {
+        await staffService.delete(id);
+        setStaffData((prev) => prev.filter((s) => s.id !== id));
+      } catch (err) {
+        setError(typeof err === "string" ? err : "Failed to delete staff member");
+      }
     }
   };
 
@@ -225,7 +191,17 @@ export default function AdminStaff() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
-                {filteredStaff.map((staff) => (
+                {loading && (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-12 text-center text-slate-400">Loading staff...</td>
+                  </tr>
+                )}
+                {error && !loading && (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-4 text-center text-red-400 text-sm">{error}</td>
+                  </tr>
+                )}
+                {!loading && filteredStaff.map((staff) => (
                   <tr
                     key={staff.id}
                     className="hover:bg-white/[0.02] transition-colors"
@@ -233,7 +209,7 @@ export default function AdminStaff() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
                         <img
-                          src={staff.avatar}
+                          src={`https://i.pravatar.cc/150?u=${staff.email}`}
                           alt={staff.name}
                           className="w-10 h-10 rounded-full border border-white/10 object-cover"
                         />
@@ -242,7 +218,7 @@ export default function AdminStaff() {
                             {staff.name}
                           </p>
                           <p className="text-xs text-slate-500 font-medium">
-                            {staff.id}
+                            {`EMP-${String(staff.id).padStart(3, "0")}`}
                           </p>
                         </div>
                       </div>
@@ -296,7 +272,7 @@ export default function AdminStaff() {
                     </td>
                   </tr>
                 ))}
-                {filteredStaff.length === 0 && (
+                {!loading && filteredStaff.length === 0 && (
                   <tr>
                     <td colSpan={6} className="px-6 py-12 text-center">
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white/5 mb-4">
@@ -349,7 +325,7 @@ export default function AdminStaff() {
                     </h2>
                     <p className="text-xs text-slate-400">
                       {editingStaff
-                        ? `Editing details for ${editingStaff.id}`
+                        ? `Editing details for EMP-${String(editingStaff.id).padStart(3, "0")}`
                         : "Create credentials for a new employee"}
                     </p>
                   </div>

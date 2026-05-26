@@ -24,6 +24,8 @@ import {
   Cell,
 } from "recharts";
 import { motion, AnimatePresence } from "motion/react";
+import { dashboardService } from "../../services/dashboard.service";
+import type { DashboardStats } from "../../types/dashboard";
 
 // Mock Data Generators
 const generateRevenueData = (range: string) => {
@@ -97,11 +99,33 @@ export default function AdminDashboard() {
   );
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
 
   const dropdownRef = React.useRef<HTMLDivElement>(null);
   const refreshTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
+
+  // Fetch real dashboard stats
+  useEffect(() => {
+    setStatsLoading(true);
+    dashboardService.get()
+      .then((data) => {
+        setStats(data);
+        // Seed chart with real daily summaries if available
+        if (data.dailySummaries && data.dailySummaries.length > 0) {
+          const chartData = data.dailySummaries.slice(-7).map((s) => ({
+            name: new Date(s.date).toLocaleDateString("en-US", { weekday: "short" }),
+            revenue: s.revenue,
+            tickets: s.ticketCount,
+          }));
+          setRevenueData(chartData);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setStatsLoading(false));
+  }, []);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -194,7 +218,11 @@ export default function AdminDashboard() {
           {[
             {
               label: "Total Revenue",
-              value: `฿${revenueData.reduce((acc, curr) => acc + curr.revenue, 0).toLocaleString()}`,
+              value: statsLoading
+                ? "..."
+                : stats
+                  ? `฿${stats.totalRevenue.toLocaleString()}`
+                  : `฿${revenueData.reduce((acc, curr) => acc + curr.revenue, 0).toLocaleString()}`,
               trend: "+12.5%",
               isUp: true,
               icon: DollarSign,
@@ -203,9 +231,11 @@ export default function AdminDashboard() {
             },
             {
               label: "Tickets Sold",
-              value: revenueData
-                .reduce((acc, curr) => acc + curr.tickets, 0)
-                .toLocaleString(),
+              value: statsLoading
+                ? "..."
+                : stats
+                  ? stats.totalTicketsSold.toLocaleString()
+                  : revenueData.reduce((acc, curr) => acc + curr.tickets, 0).toLocaleString(),
               trend: "+8.2%",
               isUp: true,
               icon: Ticket,
