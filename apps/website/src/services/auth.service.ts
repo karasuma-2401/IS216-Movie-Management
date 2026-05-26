@@ -1,58 +1,75 @@
 import api from "./api";
-
-// Hàm hỗ trợ trích xuất lỗi từ Spring Boot
-const extractErrorMessage = (error: any, defaultMessage: string) => {
-  // Không có response -> Máy chủ tắt hoặc mất mạng
-  if (!error.response) {
-    return "Không thể kết nối đến máy chủ (Backend chưa chạy).";
-  }
-
-  if (error.response && error.response.data) {
-    // Spring Boot thường trả message trong trường "message" hoặc trả trực tiếp chuỗi
-    if (typeof error.response.data === "string") return error.response.data;
-    if (error.response.data.message) return error.response.data.message;
-  }
-  return defaultMessage;
-};
+import { extractErrorMessage } from "../utils/error";
 
 export const authService = {
   login: async (email: string, password: string) => {
     try {
       const response = await api.post("/api/auth/login", { email, password });
-      const data = response.data;
-      
-      const token = typeof data === "string" ? data : data.token;
-      
-      if (token) {
-        localStorage.setItem("token", token);
+      const payload = response.data.data;
+      if (payload?.token) {
+        localStorage.setItem("token", payload.token);
         localStorage.setItem("userEmail", email);
+        localStorage.setItem("userRole", payload.role ?? "");
+        localStorage.setItem("userFullName", payload.fullName ?? "");
       }
-      
-      return data;
-    } catch (error: any) {
-      throw extractErrorMessage(error, "Đăng nhập thất bại");
+      return payload;
+    } catch (error) {
+      throw extractErrorMessage(error, "Login failed");
     }
   },
 
   register: async (fullName: string, email: string, password: string) => {
     try {
-      const response = await api.post("/api/auth/register", {
-        name: fullName, // Backend Spring Boot dùng trường "name" thay vì "fullName"
-        email: email,
-        password: password,
-      });
-      return response.data;
-    } catch (error: any) {
-      throw extractErrorMessage(error, "Đăng ký thất bại");
+      const response = await api.post("/api/auth/register", { name: fullName, email, password });
+      return response.data.data;
+    } catch (error) {
+      throw extractErrorMessage(error, "Registration failed");
+    }
+  },
+
+  forgotPassword: async (email: string) => {
+    try {
+      const response = await api.post("/api/auth/forgot-password", { email });
+      return response.data.data;
+    } catch (error) {
+      throw extractErrorMessage(error, "Failed to send OTP");
+    }
+  },
+
+  verifyOtp: async (email: string, otp: string) => {
+    try {
+      const response = await api.post("/api/auth/verify-otp", { email, otp });
+      return response.data.data;
+    } catch (error) {
+      throw extractErrorMessage(error, "OTP verification failed");
+    }
+  },
+
+  resetPassword: async (email: string, otp: string, newPassword: string) => {
+    try {
+      const response = await api.post("/api/auth/reset-password", { email, otp, newPassword });
+      return response.data.data;
+    } catch (error) {
+      throw extractErrorMessage(error, "Password reset failed");
+    }
+  },
+
+  me: async () => {
+    try {
+      const response = await api.get("/api/auth/me");
+      return response.data.data;
+    } catch (error) {
+      throw extractErrorMessage(error, "Failed to fetch user info");
     }
   },
 
   logout: () => {
     localStorage.removeItem("token");
     localStorage.removeItem("userEmail");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("userFullName");
   },
 
-  getCurrentUser: () => {
-    return localStorage.getItem("userEmail");
-  },
+  getCurrentUser: () => localStorage.getItem("userEmail"),
+  getCurrentRole: () => localStorage.getItem("userRole"),
 };
