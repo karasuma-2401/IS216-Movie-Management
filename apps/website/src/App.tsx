@@ -1,4 +1,5 @@
-import { HashRouter as Router, Routes, Route } from "react-router-dom";
+import { HashRouter as Router, Routes, Route, Outlet } from "react-router-dom";
+import { BookingProvider } from "./contexts/BookingContext";
 import MainLayout from "./layouts/MainLayout.tsx";
 import Home from "./pages/home/Home.tsx";
 import Movies from "./pages/movie/Movies.tsx";
@@ -35,13 +36,15 @@ export default function App() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
 
         {/* ================= USER ROUTES ================= */}
-        <Route path="/home" element={<MainLayout><Home /></MainLayout>} />
-        <Route path="/movies" element={<MainLayout><Movies /></MainLayout>} />
-        <Route path="/theater" element={<MainLayout><Theater /></MainLayout>} />
-        <Route path="/seats" element={<MainLayout><Seats /></MainLayout>} />
-        <Route path="/snacks" element={<MainLayout><Snacks /></MainLayout>} />
-        <Route path="/payment" element={<MainLayout><Payment /></MainLayout>} />
-        <Route path="/confirmation" element={<MainLayout><BookingConfirmation /></MainLayout>} />
+        <Route element={<BookingProvider><MainLayout><Outlet /></MainLayout></BookingProvider>}>
+          <Route path="/home" element={<Home />} />
+          <Route path="/movies" element={<Movies />} />
+          <Route path="/theater" element={<Theater />} />
+          <Route path="/seats" element={<Seats />} />
+          <Route path="/snacks" element={<Snacks />} />
+          <Route path="/payment" element={<Payment />} />
+          <Route path="/confirmation" element={<BookingConfirmation />} />
+        </Route>
 
         {/* ================= STAFF ROUTES ================= */}
         <Route path="/staff" element={<StaffDashboard />} />
