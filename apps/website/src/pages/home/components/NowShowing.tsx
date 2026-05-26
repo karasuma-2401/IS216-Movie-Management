@@ -81,6 +81,7 @@ export default function NowShowing() {
                 </div>
               </div>
               <h3 className="text-lg font-display font-bold group-hover:text-tickify-pink transition-colors px-2">{movie.title}</h3>
+              <p className="text-xs text-gray-500 px-2 mt-1">{movie.genre} · {movie.durationMinutes} min</p>
             </div>
           ))}
         </div>

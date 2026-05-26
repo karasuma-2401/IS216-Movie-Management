@@ -158,7 +158,7 @@ export default function Seats() {
                                   title={`${seat.tierName}${seat.isBooked ? " (Booked)" : ""}`}
                                   className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold transition-all duration-300 ${getSeatColor(seat.tierName, seat.isBooked, isSelected)}`}
                                 >
-                                  {seat.seatNumber}
+                                  {seat.rowLabel}{seat.seatNumber}
                                 </motion.button>
                               );
                             })}
