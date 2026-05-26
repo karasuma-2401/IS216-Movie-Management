@@ -46,8 +46,6 @@ const BLOCK_COLORS = [
   "from-violet-500 to-indigo-600",
 ];
 
-const CINEMAS = ["All Cinemas", "Cinema City Center", "Cinema Mega Mall", "Cinema West Side"];
-
 const HOURS = Array.from({ length: 17 }, (_, i) => i + 8); // 08..24
 const DAYS  = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const HOUR_H = 64; // px per hour
@@ -67,7 +65,6 @@ function getWeekDates(offset: number) {
 // ─────────────── Main Component ───────────────
 export default function AdminShowtimes() {
   const [weekOffset, setWeekOffset]     = useState(0);
-  const [cinema, setCinema]             = useState("All Cinemas");
   const [showtimes, setShowtimes]       = useState<ShowtimeDisplay[]>([]);
   const [movies, setMovies]             = useState<Movie[]>([]);
   const [rooms, setRooms]               = useState<TheaterRoom[]>([]);
@@ -75,7 +72,6 @@ export default function AdminShowtimes() {
   const [error, setError]               = useState<string | null>(null);
   const [showModal, setShowModal]       = useState(false);
   const [editingShowtime, setEditingShowtime] = useState<ShowtimeDisplay | null>(null);
-  const [cinemaDropOpen, setCinemaDropOpen] = useState(false);
 
   // Modal form state
   const [selMovieId, setSelMovieId] = useState<number | "">("");
@@ -126,6 +122,7 @@ export default function AdminShowtimes() {
   }, []);
 
   const handleDelete = async (id: number) => {
+    if (!window.confirm("Delete this showtime? This cannot be undone.")) return;
     try {
       await showtimeService.delete(id);
       setShowtimes(prev => prev.filter(s => s.id !== id));
@@ -237,38 +234,6 @@ export default function AdminShowtimes() {
             </button>
           </div>
 
-          {/* Cinema Filter */}
-          <div className="relative">
-            <button
-              onClick={() => setCinemaDropOpen(v => !v)}
-              className="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-2xl px-5 py-3 text-sm font-bold text-white hover:border-pink-500/50 transition-all"
-            >
-              <Building2 size={16} className="text-slate-400" />
-              {cinema}
-              <ChevronLeft size={14} className={`text-slate-400 transition-transform ${cinemaDropOpen ? "-rotate-90" : "rotate-90"}`} />
-            </button>
-            <AnimatePresence>
-              {cinemaDropOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: 8, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                  transition={{ duration: 0.15 }}
-                  className="absolute top-full left-0 mt-2 w-56 bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl z-50 p-2"
-                >
-                  {CINEMAS.map(c => (
-                    <button
-                      key={c}
-                      onClick={() => { setCinema(c); setCinemaDropOpen(false); }}
-                      className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${cinema === c ? "bg-pink-500/10 text-pink-400" : "text-slate-400 hover:bg-white/5 hover:text-white"}`}
-                    >
-                      {c}
-                    </button>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
         </div>
 
         {error && (

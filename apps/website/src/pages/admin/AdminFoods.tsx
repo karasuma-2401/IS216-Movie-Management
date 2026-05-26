@@ -103,11 +103,10 @@ const AdminFoods: React.FC = () => {
         const created = await foodService.create(fd);
         setFoods((prev) => [...prev, created]);
       }
+      setIsPopupOpen(false);
     } catch (err) {
       setError(typeof err === "string" ? err : "Failed to save food item");
     }
-
-    setIsPopupOpen(false);
   };
 
   return (

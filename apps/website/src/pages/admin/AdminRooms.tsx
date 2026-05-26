@@ -80,7 +80,7 @@ export default function AdminRooms() {
     ) {
       try {
         await theaterRoomService.delete(Number(id));
-        setRooms(rooms.filter((r) => r.id !== id));
+        setRooms(prev => prev.filter((r) => r.id !== id));
       } catch (err) {
         setError(typeof err === "string" ? err : "Failed to delete room");
       }
@@ -92,15 +92,15 @@ export default function AdminRooms() {
       const req = toAPIRequest(room);
       if (editingRoom) {
         const updated = await theaterRoomService.update(Number(editingRoom.id), req);
-        setRooms(rooms.map((r) => r.id === editingRoom.id ? toUIRoom(updated) : r));
+        setRooms(prev => prev.map((r) => r.id === editingRoom.id ? toUIRoom(updated) : r));
       } else {
         const created = await theaterRoomService.create(req);
-        setRooms([...rooms, toUIRoom(created)]);
+        setRooms(prev => [...prev, toUIRoom(created)]);
       }
+      setIsModalOpen(false);
     } catch (err) {
       setError(typeof err === "string" ? err : "Failed to save room");
     }
-    setIsModalOpen(false);
   };
 
   const filteredRooms = rooms.filter(

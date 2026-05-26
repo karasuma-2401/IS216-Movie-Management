@@ -107,10 +107,10 @@ export default function AdminStaff() {
         const created = await staffService.create(req);
         setStaffData((prev) => [created, ...prev]);
       }
+      handleCloseModal();
     } catch (err) {
       setError(typeof err === "string" ? err : "Failed to save staff member");
     }
-    handleCloseModal();
   };
 
   const handleDelete = async (id: number) => {

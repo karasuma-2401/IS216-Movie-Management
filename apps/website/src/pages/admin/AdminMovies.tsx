@@ -62,10 +62,10 @@ const AdminMovies: React.FC = () => {
         const created = await movieService.create(fd);
         setMovies(prev => [...prev, created]);
       }
+      setIsPopupOpen(false);
     } catch (err) {
       setError(typeof err === "string" ? err : "Failed to save movie");
     }
-    setIsPopupOpen(false);
   };
 
   const handleConfirmDelete = async () => {
