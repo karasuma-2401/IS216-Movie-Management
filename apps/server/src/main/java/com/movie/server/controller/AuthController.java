@@ -21,7 +21,6 @@ import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin("*")
 @Tag(name = "Authentication", description = "Register, login, and password reset via OTP")
 public class AuthController {
     private final AuthService authService;
