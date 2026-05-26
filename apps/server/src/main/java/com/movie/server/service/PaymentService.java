@@ -88,8 +88,8 @@ public class PaymentService {
             payment.setStatus(PaymentStatus.PENDING);
             payment.setPaidAt(null);
         } else {
-            payment.setStatus(request.getStatus());
-            payment.setPaidAt(request.getPaidAt());
+            payment.setStatus(PaymentStatus.SUCCESS);
+            payment.setPaidAt(LocalDateTime.now());
         }
         Payment savedPayment = paymentRepository.save(payment);
         if (savedPayment.getMethod() == PaymentMethod.VNPAY) {
@@ -210,9 +210,6 @@ public class PaymentService {
         }
         if (request.getMethod() == null) {
             throw new BadRequestException("method is required");
-        }
-        if (request.getMethod() != PaymentMethod.VNPAY && request.getStatus() == null) {
-            throw new BadRequestException("status is required");
         }
     }
 
